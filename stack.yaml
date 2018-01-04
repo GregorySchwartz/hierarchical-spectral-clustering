@@ -42,6 +42,7 @@ packages:
 extra-deps:
 - /home/gw/code/utility/spectral-clustering/
 - /home/gw/code/utility/modularity/
+- hmatrix-svdlibc-0.4.1
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
