@@ -1,5 +1,5 @@
 name:                hierarchical-spectral-clustering
-version:             0.1.1.0
+version:             0.1.2.0
 synopsis:            Hierarchical spectral clustering of a graph.
 description:         Generate a tree of hierarchical spectral clustering using Newman-Girvan modularity as a stopping criteria.
 homepage:            http://github.com/GregorySchwartz/hierarchical-spectral-clustering#readme
@@ -18,14 +18,15 @@ library
   exposed-modules:     Math.Clustering.Hierarchical.Spectral.Dense
                      , Math.Clustering.Hierarchical.Spectral.Sparse
                      , Math.Clustering.Hierarchical.Spectral.Types
+  other-modules:       Math.Clustering.Hierarchical.Spectral.Test
   build-depends:       base >= 4.7 && < 5
                      , containers
-                     , discrimination
                      , hierarchical-clustering
                      , hmatrix
                      , modularity
                      , sparse-linear-algebra
                      , spectral-clustering
+                     , tree-fun
                      , vector
   ghc-options:         -O2
   default-language:    Haskell2010

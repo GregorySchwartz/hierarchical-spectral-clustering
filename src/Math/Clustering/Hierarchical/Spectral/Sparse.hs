@@ -1,4 +1,4 @@
-{- Math.Clustering.Hierarchical.Sparse.Spectral
+{- Math.Clustering.Hierarchical.Spectral.Sparse
 Gregory W. Schwartz
 
 Collects the functions pertaining to hierarchical spectral clustering for sparse
@@ -9,10 +9,9 @@ data.
 
 module Math.Clustering.Hierarchical.Spectral.Sparse
     ( hierarchicalSpectralCluster
-    , getClusterItems
-    , test
-    , test2
-    , items2
+    , FeatureMatrix (..)
+    , Items (..)
+    , ShowB (..)
     ) where
 
 -- Remote
@@ -22,7 +21,6 @@ import Data.Tree (Tree (..))
 import Math.Clustering.Spectral.Sparse (B (..), getB, spectralCluster)
 import Math.Modularity.Sparse (getBModularity)
 import Math.Modularity.Types (Q (..))
-import qualified Data.Discrimination as D
 import qualified Data.Foldable as F
 import qualified Data.Sparse.Common as S
 import qualified Data.Vector as V
@@ -70,11 +68,9 @@ hierarchicalSpectralCluster !initItems = go initItems . either getB id
         ngMod :: Q
         ngMod       = getBModularity clusters $ b
         getSortedIdxs :: Double -> S.SpVector Double -> [Int]
-        getSortedIdxs val =
-            D.sort
-                . VS.ifoldl' (\ !acc !i -> bool acc (i:acc) . (== val)) []
-                . VS.fromList
-                . S.toDenseListSV
+        getSortedIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
+                          . VS.fromList
+                          . S.toDenseListSV
         leftIdxs :: [Int]
         leftIdxs    = getSortedIdxs 0 $ clusters
         rightIdxs :: [Int]
@@ -84,16 +80,6 @@ hierarchicalSpectralCluster !initItems = go initItems . either getB id
         right :: B
         right       = B $ extractRows (unB b) rightIdxs
         extractRows :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
-        extractRows mat = S.fromRowsL . fmap (S.extractRow mat)
+        extractRows mat = S.transposeSM . S.fromColsL . fmap (S.extractRow mat)
         getItems    =
-            V.fromList . F.foldl' (\ !acc !i -> (items V.! i) : acc) []
-
--- | Gather clusters (leaves) from the tree.
-getClusterItems :: Foldable t => t (Items a, b) -> [V.Vector a]
-getClusterItems = fmap fst . F.toList
-
-test :: IO B
-test = fmap B . S.chol . S.fromListDenseSM 7 $ ([1,0.423,0.56,0.004,0.004,0.24,0.013,0.423,1,0.466,0.00,50.004,0.013,0.043,0.56,0.466,1,0.004,0.003,0.01,0.035,0.004,0.005,0.004,1,0.71,0.008,0.009,0.004,0.004,0.003,0.71,1,0.008,0.008,0.24,0.013,0.01,0.008,0.008,1,0.513,0.013,0.043,0.035,0.009,0.008,0.513,1] :: [Double])
-
-test2 = B $ S.fromListDenseSM 4 ([1,0, 1,0, 0,1, 0,1] :: [Double])
-items2 = V.fromList ["a", "a", "b", "b"]
+            V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) []

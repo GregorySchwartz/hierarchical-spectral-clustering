@@ -8,7 +8,8 @@ Collects the functions pertaining to hierarchical spectral clustering.
 
 module Math.Clustering.Hierarchical.Spectral.Dense
     ( hierarchicalSpectralCluster
-    , getClusterItems
+    , AdjacencyMatrix (..)
+    , Items (..)
     ) where
 
 -- Remote
@@ -52,15 +53,11 @@ hierarchicalSpectralCluster !items !adjMat =
                                    }
     clusters    = spectralClusterNorm adjMat
     ngMod       = getModularity clusters $ adjMat
-    getIdxs val = VS.ifoldl' (\ !acc !i -> bool acc (i:acc) . (== val)) []
+    getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
     leftIdxs    = getIdxs 0 $ clusters
     rightIdxs   = getIdxs 1 $ clusters
     left        = adjMat H.?? (H.Pos (H.idxs leftIdxs), H.Pos (H.idxs leftIdxs))
     right       =
         adjMat H.?? (H.Pos (H.idxs rightIdxs), H.Pos (H.idxs rightIdxs))
     getItems    =
-        V.fromList . F.foldl' (\ !acc !i -> (items V.! i) : acc) [] . V.fromList
-
--- | Gather clusters (leaves) from the tree.
-getClusterItems :: Foldable t => t (Items a, b) -> [V.Vector a]
-getClusterItems = fmap fst . F.toList
+        V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) [] . V.fromList
