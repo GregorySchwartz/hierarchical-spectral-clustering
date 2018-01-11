@@ -36,19 +36,20 @@ data ClusteringVertex a b = ClusteringVertex
     , _ngMod            :: !Q
     } deriving (Eq, Ord, Read, Show, Generic)
 
--- | Convert a ClusteringTree to a Dendrogram.
+-- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
 clusteringTreeToDendrogram :: ClusteringTree a b -> Dendrogram (Items a, b)
-clusteringTreeToDendrogram (Node { rootLabel = !n, subForest = []}) =
-    Leaf (_clusteringItems n, _clusteringMatrix n)
-clusteringTreeToDendrogram (Node { rootLabel = !n, subForest = [x, y]}) =
-    Branch
-        (unQ . _ngMod $ n)
-        (clusteringTreeToDendrogram x)
-        (clusteringTreeToDendrogram y)
-clusteringTreeToDendrogram (Node { subForest = xs}) =
-    error $ "Clustering tree has "
-         <> (show $ length xs)
-         <> " children. Requires two or none."
+clusteringTreeToDendrogram = go 0
+  where
+    go _ (Node { rootLabel = !n, subForest = []}) =
+        Leaf (_clusteringItems n, _clusteringMatrix n)
+    go !d (Node { rootLabel = !n, subForest = [x, y]}) =
+        Branch newD (go newD x) (go newD y)
+      where
+        newD = (+ d) . unQ . _ngMod $ n
+    go _ (Node { subForest = xs}) =
+        error $ "Clustering tree has "
+            <> (show $ length xs)
+            <> " children. Requires two or none."
 
 -- | Gather clusters (leaves) from the dendrogram.
 getClusterItemsDend :: Foldable t => t (Items a, b) -> [Items a]
