@@ -5,6 +5,7 @@ Collects the types used in hierarchical clustering.
 -}
 
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Math.Clustering.Hierarchical.Spectral.Types
     ( ClusteringTree (..)
@@ -18,6 +19,7 @@ module Math.Clustering.Hierarchical.Spectral.Types
 import Data.Clustering.Hierarchical (Dendrogram (..))
 import Data.Monoid ((<>))
 import Data.Tree (Tree (..))
+import GHC.Generics (Generic)
 import Math.Modularity.Types (Q (..))
 import Math.TreeFun.Tree (leaves)
 import qualified Data.Foldable as F
@@ -32,7 +34,7 @@ data ClusteringVertex a b = ClusteringVertex
     { _clusteringItems  :: !(Items a)
     , _clusteringMatrix :: !b
     , _ngMod            :: !Q
-    } deriving (Eq, Ord, Read, Show)
+    } deriving (Eq, Ord, Read, Show, Generic)
 
 -- | Convert a ClusteringTree to a Dendrogram.
 clusteringTreeToDendrogram :: ClusteringTree a b -> Dendrogram (Items a, b)
