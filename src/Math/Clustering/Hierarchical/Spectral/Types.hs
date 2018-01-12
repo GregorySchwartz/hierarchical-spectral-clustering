@@ -38,15 +38,17 @@ data ClusteringVertex a b = ClusteringVertex
 
 -- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
 clusteringTreeToDendrogram :: ClusteringTree a b -> Dendrogram (Items a, b)
-clusteringTreeToDendrogram = go 0
+clusteringTreeToDendrogram = fst . go
   where
-    go _ (Node { rootLabel = !n, subForest = []}) =
-        Leaf (_clusteringItems n, _clusteringMatrix n)
-    go !d (Node { rootLabel = !n, subForest = [x, y]}) =
-        Branch newD (go newD x) (go newD y)
+    go (Node { rootLabel = !n, subForest = []}) =
+        (Leaf (_clusteringItems n, _clusteringMatrix n), 0)
+    go (Node { rootLabel = !n, subForest = [x, y]}) =
+        (Branch newD l r, newD)
       where
-        newD = (+ d) . unQ . _ngMod $ n
-    go _ (Node { subForest = xs}) =
+        newD = (unQ . _ngMod $ n) + lDist + rDist
+        (!l, !lDist) = go x
+        (!r, !rDist) = go y
+    go (Node { subForest = xs}) =
         error $ "Clustering tree has "
             <> (show $ length xs)
             <> " children. Requires two or none."

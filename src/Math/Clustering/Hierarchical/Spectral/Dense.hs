@@ -15,6 +15,7 @@ module Math.Clustering.Hierarchical.Spectral.Dense
 -- Remote
 import Data.Bool (bool)
 import Data.Clustering.Hierarchical (Dendrogram (..))
+import Data.Maybe (fromMaybe)
 import Data.Tree (Tree (..))
 import Math.Clustering.Spectral.Dense (spectralClusterNorm)
 import Math.Modularity.Dense (getModularity)
@@ -31,22 +32,28 @@ type AdjacencyMatrix = H.Matrix Double
 type Items a         = V.Vector a
 
 -- | Generates a tree through divisive hierarchical clustering using
--- Newman-Girvan modularity as a stopping criteria.
-hierarchicalSpectralCluster :: Items a
+-- Newman-Girvan modularity as a stopping criteria. Can also use minimum number
+-- of observations in a cluster as the stopping criteria.
+hierarchicalSpectralCluster :: Maybe Int
+                            -> Items a
                             -> AdjacencyMatrix
                             -> ClusteringTree a AdjacencyMatrix
-hierarchicalSpectralCluster !items !adjMat =
-    if ngMod > Q 0 && H.rows adjMat > 1
+hierarchicalSpectralCluster !minSizeMay !items !adjMat =
+    if ngMod > Q 0
+        && H.rows adjMat > 1
+        && H.rows left >= minSize
+        && H.rows right >= minSize
         then
             Node { rootLabel = vertex
                  , subForest =
-                    [ hierarchicalSpectralCluster (getItems leftIdxs) left
-                    , hierarchicalSpectralCluster (getItems rightIdxs) right
+                    [ hierarchicalSpectralCluster minSizeMay (getItems leftIdxs) left
+                    , hierarchicalSpectralCluster minSizeMay (getItems rightIdxs) right
                     ]
                  }
         else
             Node {rootLabel = vertex, subForest = []}
   where
+    minSize     = fromMaybe 1 minSizeMay
     vertex      = ClusteringVertex { _clusteringItems = items
                                    , _clusteringMatrix = adjMat
                                    , _ngMod = ngMod
