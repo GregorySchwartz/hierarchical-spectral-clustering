@@ -28,20 +28,19 @@ import qualified Data.Vector as V
 -- Local
 
 type Items a         = V.Vector a
-type ClusteringTree a b = Tree (ClusteringVertex a b)
+type ClusteringTree a = Tree (ClusteringVertex a)
 
-data ClusteringVertex a b = ClusteringVertex
+data ClusteringVertex a = ClusteringVertex
     { _clusteringItems  :: !(Items a)
-    , _clusteringMatrix :: !b
     , _ngMod            :: !Q
     } deriving (Eq, Ord, Read, Show, Generic)
 
 -- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
-clusteringTreeToDendrogram :: ClusteringTree a b -> Dendrogram (Items a, b)
+clusteringTreeToDendrogram :: ClusteringTree a b -> Dendrogram Items a
 clusteringTreeToDendrogram = fst . go
   where
     go (Node { rootLabel = !n, subForest = []}) =
-        (Leaf (_clusteringItems n, _clusteringMatrix n), 0)
+        (Leaf (_clusteringItems n), 0)
     go (Node { rootLabel = !n, subForest = [x, y]}) =
         (Branch newD l r, newD)
       where
@@ -54,8 +53,8 @@ clusteringTreeToDendrogram = fst . go
             <> " children. Requires two or none."
 
 -- | Gather clusters (leaves) from the dendrogram.
-getClusterItemsDend :: Foldable t => t (Items a, b) -> [Items a]
-getClusterItemsDend = fmap fst . F.toList
+getClusterItemsDend :: Foldable t => t (Items a) -> [Items a]
+getClusterItemsDend = F.toList
 
 -- | Gather clusters (leaves) from the tree.
 getClusterItemsTree :: ClusteringTree a b -> [Items a]
