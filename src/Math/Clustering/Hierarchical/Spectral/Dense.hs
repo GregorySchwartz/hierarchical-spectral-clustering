@@ -37,7 +37,7 @@ type Items a         = V.Vector a
 hierarchicalSpectralCluster :: Maybe Int
                             -> Items a
                             -> AdjacencyMatrix
-                            -> ClusteringTree a AdjacencyMatrix
+                            -> ClusteringTree a
 hierarchicalSpectralCluster !minSizeMay !items !adjMat =
     if ngMod > Q 0
         && H.rows adjMat > 1
@@ -55,7 +55,6 @@ hierarchicalSpectralCluster !minSizeMay !items !adjMat =
   where
     minSize     = fromMaybe 1 minSizeMay
     vertex      = ClusteringVertex { _clusteringItems = items
-                                   , _clusteringMatrix = adjMat
                                    , _ngMod = ngMod
                                    }
     clusters    = spectralClusterNorm adjMat

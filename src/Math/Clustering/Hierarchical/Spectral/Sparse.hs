@@ -10,6 +10,7 @@ data.
 module Math.Clustering.Hierarchical.Spectral.Sparse
     ( hierarchicalSpectralCluster
     , FeatureMatrix (..)
+    , B (..)
     , Items (..)
     , ShowB (..)
     ) where
@@ -49,7 +50,7 @@ hierarchicalSpectralCluster initMinSizeMay initItems initMat =
     (go initMinSizeMay initItems initB, initB)
   where
     initB = either getB id $ initMat
-    go :: Maybe Int -> Items a -> B -> ClusteringTree a ShowB
+    go :: Maybe Int -> Items a -> B -> ClusteringTree a
     go !minSizeMay !items !b =
         if ngMod > Q 0
             && (S.nrows $ unB b) > 1

@@ -13,6 +13,7 @@ module Math.Clustering.Hierarchical.Spectral.Types
     , clusteringTreeToDendrogram
     , getClusterItemsDend
     , getClusterItemsTree
+    , Q (..)
     ) where
 
 -- Remote
@@ -36,7 +37,7 @@ data ClusteringVertex a = ClusteringVertex
     } deriving (Eq, Ord, Read, Show, Generic)
 
 -- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
-clusteringTreeToDendrogram :: ClusteringTree a b -> Dendrogram Items a
+clusteringTreeToDendrogram :: ClusteringTree a -> Dendrogram (Items a)
 clusteringTreeToDendrogram = fst . go
   where
     go (Node { rootLabel = !n, subForest = []}) =
@@ -57,5 +58,5 @@ getClusterItemsDend :: Foldable t => t (Items a) -> [Items a]
 getClusterItemsDend = F.toList
 
 -- | Gather clusters (leaves) from the tree.
-getClusterItemsTree :: ClusteringTree a b -> [Items a]
+getClusterItemsTree :: ClusteringTree a -> [Items a]
 getClusterItemsTree = fmap _clusteringItems . leaves
