@@ -45,7 +45,7 @@ clusteringTreeToDendrogram = fst . go
     go (Node { rootLabel = !n, subForest = [x, y]}) =
         (Branch newD l r, newD)
       where
-        newD = (unQ . _ngMod $ n) + lDist + rDist
+        newD = (unQ . _ngMod $ n) + max lDist rDist
         (!l, !lDist) = go x
         (!r, !rDist) = go y
     go (Node { subForest = xs}) =
