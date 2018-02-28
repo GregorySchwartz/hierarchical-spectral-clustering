@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-10.3
+resolver: lts-10.4
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -42,7 +42,10 @@ packages:
 extra-deps:
 - /home/gw/code/utility/spectral-clustering/
 - /home/gw/code/utility/modularity/
+- /home/gw/git_repos/sparse-linear-algebra/
 - hmatrix-svdlibc-0.4.1
+- streaming-cassava-0.1.0.1
+- streaming-with-0.2.0.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

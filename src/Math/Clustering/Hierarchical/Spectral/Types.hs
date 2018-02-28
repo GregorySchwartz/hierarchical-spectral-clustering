@@ -11,6 +11,7 @@ module Math.Clustering.Hierarchical.Spectral.Types
     ( ClusteringTree (..)
     , ClusteringVertex (..)
     , clusteringTreeToDendrogram
+    , clusteringTreeToDendrogramCumulative
     , getClusterItemsDend
     , getClusterItemsTree
     , Q (..)
@@ -38,7 +39,20 @@ data ClusteringVertex a = ClusteringVertex
 
 -- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
 clusteringTreeToDendrogram :: ClusteringTree a -> Dendrogram (Items a)
-clusteringTreeToDendrogram = fst . go
+clusteringTreeToDendrogram = go
+  where
+    go (Node { rootLabel = !n, subForest = []}) = Leaf $ _clusteringItems n
+    go (Node { rootLabel = !n, subForest = [x, y]}) =
+        Branch (unQ . _ngMod $ n) (go x) (go y)
+    go (Node { subForest = xs}) =
+        error $ "Clustering tree has "
+            <> (show $ length xs)
+            <> " children. Requires two or none."
+
+-- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance, such
+-- that the distance is the modularity plus the maximum distance of each branch.
+clusteringTreeToDendrogramCumulative :: ClusteringTree a -> Dendrogram (Items a)
+clusteringTreeToDendrogramCumulative = fst . go
   where
     go (Node { rootLabel = !n, subForest = []}) =
         (Leaf (_clusteringItems n), 0)

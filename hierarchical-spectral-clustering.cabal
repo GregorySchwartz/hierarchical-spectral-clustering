@@ -1,5 +1,5 @@
 name:                hierarchical-spectral-clustering
-version:             0.1.2.0
+version:             0.2.0.0
 synopsis:            Hierarchical spectral clustering of a graph.
 description:         Generate a tree of hierarchical spectral clustering using Newman-Girvan modularity as a stopping criteria.
 homepage:            http://github.com/GregorySchwartz/hierarchical-spectral-clustering#readme
@@ -29,6 +29,30 @@ library
                      , tree-fun
                      , vector
   ghc-options:         -O2
+  default-language:    Haskell2010
+
+executable cluster-tree
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -O2
+  build-depends:       base
+                     , hierarchical-spectral-clustering
+                     , aeson
+                     , aeson-pretty
+                     , bytestring
+                     , cassava
+                     , containers
+                     , hmatrix
+                     , managed
+                     , mtl
+                     , optparse-generic
+                     , safe
+                     , streaming
+                     , streaming-bytestring
+                     , streaming-cassava
+                     , streaming-with
+                     , text
+                     , vector
   default-language:    Haskell2010
 
 source-repository head
