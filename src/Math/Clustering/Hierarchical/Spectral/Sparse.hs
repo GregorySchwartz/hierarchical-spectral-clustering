@@ -35,6 +35,7 @@ import Math.Clustering.Hierarchical.Spectral.Types
 type FeatureMatrix   = S.SpMatrix Double
 type Items a         = V.Vector a
 type ShowB           = ((Int, Int), [(Int, Int, Double)])
+type NormalizeFlag   = Bool
 
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can use minimum number of
@@ -42,14 +43,15 @@ type ShowB           = ((Int, Int), [(Int, Int, Double)])
 -- has column features and row observations. Items correspond to rows. Can
 -- use FeatureMatrix or a pre-generated B matrix. See Shu et al., "Efficient
 -- Spectral Neighborhood Blocking for Entity Resolution", 2011.
-hierarchicalSpectralCluster :: Maybe Int
+hierarchicalSpectralCluster :: NormalizeFlag
+                            -> Maybe Int
                             -> Items a
                             -> Either FeatureMatrix B
                             -> (ClusteringTree a, B)
-hierarchicalSpectralCluster initMinSizeMay initItems initMat =
+hierarchicalSpectralCluster normFlag initMinSizeMay initItems initMat =
     (go initMinSizeMay initItems initB, initB)
   where
-    initB = either getB id $ initMat
+    initB = either (getB normFlag) id $ initMat
     go :: Maybe Int -> Items a -> B -> ClusteringTree a
     go !minSizeMay !items !b =
         if ngMod > Q 0

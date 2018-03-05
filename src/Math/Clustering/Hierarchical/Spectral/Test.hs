@@ -78,6 +78,7 @@ exampleMatrix n records =
 
 --clusterExample :: ClusteringTree String ShowB
 clusterExample = hierarchicalSpectralCluster
+                    True
                     Nothing
                     exampleItems
                     (Left $ exampleMatrix 3 exampleData)
@@ -85,7 +86,7 @@ clusterExample = hierarchicalSpectralCluster
 adjacencyExample :: S.SpMatrix Double
 adjacencyExample = (unB b) S.##^ (unB b)
   where
-    b = getB $ exampleMatrix 3 exampleData
+    b = getB True $ exampleMatrix 3 exampleData
 
 denseAdjacencyExample :: H.Matrix Double
 denseAdjacencyExample = H.assoc (S.dimSM adjacencyExample) 0
