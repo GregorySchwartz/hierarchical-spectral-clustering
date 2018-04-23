@@ -64,7 +64,7 @@ instance (A.FromJSON a) => A.FromJSON (ClusteringVertex a)
 data Options = Options { clusteringType :: Maybe String
                                        <?> "([Dense]) Method for clustering data. Dense only so far."
                        , delimiter      :: Maybe Char
-                                       <?> "([,] | CHAR) The delimiter of the CSV file."
+                                       <?> "([,] | CHAR) The delimiter of the CSV file. Format is row,column,value with no header."
                        , minSize        :: Maybe Int
                                        <?> "([Nothing] | INT) Minimum size of a cluster."
                        , outputTree     :: Maybe String
@@ -115,7 +115,8 @@ main = do
                       \ Hierarchical spectral clustering of data Computes real\
                       \ symmetric part of matrix, so ensure the input is real\
                       \ and symmetric. Diagonal should be 0s for\
-                      \ adjacency matrix."
+                      \ adjacency matrix.\
+                      \ Format is row,column,value with no header."
 
     let clusteringType' = maybe Dense read . unHelpful . clusteringType $ opts
         delim'          =
