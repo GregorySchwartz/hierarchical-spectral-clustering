@@ -29,7 +29,7 @@ import qualified Data.Aeson.Encode.Pretty as A
 import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.ByteString.Streaming.Char8 as BS
 import qualified Data.Csv as CSV
-import qualified Data.IntMap.Strict as IMap
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -77,22 +77,23 @@ instance ParseRecord Options
 -- | Generic error message.
 errorMsg = error "Not correct format (requires row,column,value)"
 
--- | Parse a row of an index file.
-parseRow :: [Double] -> ((Int, Int), Double)
-parseRow [] = errorMsg
-parseRow [i, j, v] = ((round i, round j), v)
+-- | Parse a row of a label index file.
+parseRow :: (T.Text, T.Text, Double) -> ((T.Text, T.Text), Double)
+parseRow (i, j, v) = ((i, j), v)
 
 -- | Ensure symmetry.
 symmetric :: [((Int, Int), Double)] -> [((Int, Int), Double)]
 symmetric = concatMap (\((!i, !j), v) -> [((i, j), v), ((j, i), v)])
 
 -- | Get the translated matrix indices.
-getNewIndices :: [((Int, Int), Double)] -> [((Int, Int), Double)]
+getNewIndices
+    :: (Eq a, Ord a)
+    => [((a, a), Double)] -> [((Int, Int), Double)]
 getNewIndices xs =
     fmap
         (\((!i,!j),!v) ->
-              ( ( IMap.findWithDefault eMsg i idxMap
-                , IMap.findWithDefault eMsg j idxMap
+              ( ( Map.findWithDefault eMsg i idxMap
+                , Map.findWithDefault eMsg j idxMap
                 )
               , v
               )
@@ -101,10 +102,10 @@ getNewIndices xs =
   where
     eMsg     = error "Index not found during index conversion."
     indices  = getAllIndices xs
-    idxMap   = IMap.fromList $ zip indices [0 ..]
+    idxMap   = Map.fromList $ zip indices [0 ..]
 
 -- | Get the list of all indices.
-getAllIndices :: [((Int, Int), Double)] -> [Int]
+getAllIndices :: (Eq a, Ord a) => [((a, a), Double)] -> [a]
 getAllIndices xs = Set.toAscList . Set.union (getSet fst) $ getSet snd
   where
     getSet f = Set.fromList . fmap (f . fst) $ xs
@@ -142,8 +143,7 @@ main = do
                 . S.decodeWith decodeOpt S.NoHeader
                 $ (BS.stdin :: BS.ByteString (ExceptT S.CsvParseException Managed) ())
 
-        let 
-            items  = V.fromList $ getAllIndices assocList
+        let items  = V.fromList $ getAllIndices assocList
             mat    = H.assoc (V.length items, V.length items) 0
                    . symmetric -- Ensure symmetry.
                    . getNewIndices -- Only look at present rows by converting indices.
@@ -152,7 +152,7 @@ main = do
         return $ hierarchicalSpectralCluster (fmap unMinSize minSize') items mat
 
     let clustering = zip [1..] . getClusterItemsTree $ clusteringTree
-        body :: [(Int, Double)]
+        body :: [(T.Text, Double)]
         body = concatMap
                 (\(!c, xs) -> fmap (\ !x -> (x, c)) . V.toList $ xs)
                 clustering
