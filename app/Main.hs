@@ -85,6 +85,10 @@ parseRow (i, j, v) = ((i, j), v)
 symmetric :: [((Int, Int), Double)] -> [((Int, Int), Double)]
 symmetric = concatMap (\((!i, !j), v) -> [((i, j), v), ((j, i), v)])
 
+-- | Ensure zeros on diagonal.
+zeroDiag :: [((Int, Int), Double)] -> [((Int, Int), Double)]
+zeroDiag = filter (\((!i, !j), _) -> i /= j)
+
 -- | Get the translated matrix indices.
 getNewIndices
     :: (Eq a, Ord a)
@@ -146,6 +150,7 @@ main = do
         let items  = V.fromList $ getAllIndices assocList
             mat    = H.assoc (V.length items, V.length items) 0
                    . symmetric -- Ensure symmetry.
+                   . zeroDiag -- Ensure zeros on diagonal.
                    . getNewIndices -- Only look at present rows by converting indices.
                    $ assocList
 
