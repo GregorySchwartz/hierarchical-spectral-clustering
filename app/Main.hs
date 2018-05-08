@@ -14,7 +14,7 @@ Hierarchical spectral clustering of data.
 module Main where
 
 -- Standard
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
 import GHC.Generics
 
 -- Cabal
@@ -80,6 +80,19 @@ errorMsg = error "Not correct format (requires row,column,value)"
 -- | Parse a row of a label index file.
 parseRow :: (T.Text, T.Text, Double) -> ((T.Text, T.Text), Double)
 parseRow (i, j, v) = ((i, j), v)
+
+-- | Ignore the disconnected vertices.
+ignoreDisconnected :: V.Vector T.Text
+                   -> H.Matrix Double
+                   -> (V.Vector T.Text, H.Matrix Double)
+ignoreDisconnected items mat = (newItems, newMat)
+  where
+    newItems = V.fromList $ fmap ((V.!) items) valid
+    newMat = mat H.?? (H.Pos $ H.idxs valid, H.Pos $ H.idxs valid)
+    valid = catMaybes
+          . zipWith (\x xs -> if sum xs > 0 then Just x else Nothing) [0..]
+          . H.toLists
+          $ mat
 
 -- | Ensure symmetry.
 symmetric :: [((Int, Int), Double)] -> [((Int, Int), Double)]
@@ -147,12 +160,13 @@ main = do
                 . S.decodeWith decodeOpt S.NoHeader
                 $ (BS.stdin :: BS.ByteString (ExceptT S.CsvParseException Managed) ())
 
-        let items  = V.fromList $ getAllIndices assocList
-            mat    = H.assoc (V.length items, V.length items) 0
-                   . symmetric -- Ensure symmetry.
-                   . zeroDiag -- Ensure zeros on diagonal.
-                   . getNewIndices -- Only look at present rows by converting indices.
-                   $ assocList
+        let itemsAll = V.fromList $ getAllIndices assocList
+            matAll   = H.assoc (V.length itemsAll, V.length itemsAll) 0
+                     . symmetric -- Ensure symmetry.
+                     . zeroDiag -- Ensure zeros on diagonal.
+                     . getNewIndices -- Only look at present rows by converting indices.
+                     $ assocList
+            (items, mat) = ignoreDisconnected itemsAll matAll
 
         return $ hierarchicalSpectralCluster (fmap unMinSize minSize') items mat
 
