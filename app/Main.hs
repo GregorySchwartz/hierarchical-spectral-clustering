@@ -81,7 +81,7 @@ errorMsg = error "Not correct format (requires row,column,value)"
 parseRow :: (T.Text, T.Text, Double) -> ((T.Text, T.Text), Double)
 parseRow (i, j, v) = ((i, j), v)
 
--- | Ignore the disconnected vertices.
+-- | Ignore the disconnected vertices, not used (rather use very small weight).
 ignoreDisconnected :: V.Vector T.Text
                    -> H.Matrix Double
                    -> (V.Vector T.Text, H.Matrix Double)
@@ -160,13 +160,12 @@ main = do
                 . S.decodeWith decodeOpt S.NoHeader
                 $ (BS.stdin :: BS.ByteString (ExceptT S.CsvParseException Managed) ())
 
-        let itemsAll = V.fromList $ getAllIndices assocList
-            matAll   = H.assoc (V.length itemsAll, V.length itemsAll) 0
-                     . symmetric -- Ensure symmetry.
-                     . zeroDiag -- Ensure zeros on diagonal.
-                     . getNewIndices -- Only look at present rows by converting indices.
-                     $ assocList
-            (items, mat) = ignoreDisconnected itemsAll matAll
+        let items = V.fromList $ getAllIndices assocList
+            mat   = H.assoc (V.length items, V.length items) 0.000000000000001 -- use small weight to prevent singular matrix.
+                  . symmetric -- Ensure symmetry.
+                  . zeroDiag -- Ensure zeros on diagonal.
+                  . getNewIndices -- Only look at present rows by converting indices.
+                  $ assocList
 
         return $ hierarchicalSpectralCluster (fmap unMinSize minSize') items mat
 
