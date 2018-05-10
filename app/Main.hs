@@ -161,7 +161,7 @@ main = do
                 $ (BS.stdin :: BS.ByteString (ExceptT S.CsvParseException Managed) ())
 
         let items = V.fromList $ getAllIndices assocList
-            mat   = H.assoc (V.length items, V.length items) 0.000000000000001 -- use small weight to prevent singular matrix.
+            mat   = H.assoc (V.length items, V.length items) 0
                   . symmetric -- Ensure symmetry.
                   . zeroDiag -- Ensure zeros on diagonal.
                   . getNewIndices -- Only look at present rows by converting indices.
@@ -177,8 +177,10 @@ main = do
 
     case outputTree' of
         Nothing                -> return ()
-        Just (OutputTree file) ->
-            B.writeFile file . A.encodePretty $ clusteringTree
+        Just (OutputTree file) -> B.writeFile file
+                                . A.encodePretty
+                                . clusteringTreeToDendrogram
+                                $ clusteringTree
 
     -- | Print final result.
     B.putStr

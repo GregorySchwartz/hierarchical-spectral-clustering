@@ -43,6 +43,7 @@ extra-deps:
 - /home/gw/code/utility/spectral-clustering/
 - /home/gw/code/utility/modularity/
 - hmatrix-svdlibc-0.4.1
+- sparse-linear-algebra-0.3.1
 - streaming-cassava-0.1.0.1
 - streaming-with-0.2.0.0
 

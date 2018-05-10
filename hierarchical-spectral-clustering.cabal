@@ -20,6 +20,7 @@ library
                      , Math.Clustering.Hierarchical.Spectral.Types
   other-modules:       Math.Clustering.Hierarchical.Spectral.Test
   build-depends:       base >= 4.7 && < 5
+                     , aeson
                      , containers
                      , hierarchical-clustering
                      , hmatrix
