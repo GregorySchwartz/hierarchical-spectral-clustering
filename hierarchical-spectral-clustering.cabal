@@ -17,16 +17,25 @@ library
   hs-source-dirs:      src
   exposed-modules:     Math.Clustering.Hierarchical.Spectral.Dense
                      , Math.Clustering.Hierarchical.Spectral.Sparse
+                     , Math.Clustering.Hierarchical.Spectral.Load
                      , Math.Clustering.Hierarchical.Spectral.Types
   other-modules:       Math.Clustering.Hierarchical.Spectral.Test
   build-depends:       base >= 4.7 && < 5
                      , aeson
+                     , cassava
                      , containers
                      , hierarchical-clustering
                      , hmatrix
+                     , managed
                      , modularity
+                     , mtl
                      , sparse-linear-algebra
                      , spectral-clustering
+                     , streaming
+                     , streaming-bytestring
+                     , streaming-cassava
+                     , streaming-with
+                     , text
                      , tree-fun
                      , vector
   ghc-options:         -O2
@@ -44,14 +53,8 @@ executable cluster-tree
                      , cassava
                      , containers
                      , hmatrix
-                     , managed
-                     , mtl
                      , optparse-generic
                      , safe
-                     , streaming
-                     , streaming-bytestring
-                     , streaming-cassava
-                     , streaming-with
                      , text
                      , vector
   default-language:    Haskell2010
