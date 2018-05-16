@@ -63,7 +63,7 @@ data Options = Options { clusteringType :: Maybe String
                        , minSize        :: Maybe Int
                                        <?> "([Nothing] | INT) Minimum size of a cluster."
                        , eigenGroup     :: Maybe String
-                                       <?> "([SignGroup] | KMeansGroup) Whether to group the eigenvector using the sign or kmeans. While the default is sign, kmeans may be more accurate (but starting points are arbitrary)."
+                                       <?> "([SignGroup] | KMeansGroup) Whether to group the eigenvector using the sign or kmeans while clustering. While the default is sign, kmeans may be more accurate (but starting points are arbitrary)."
                        , outputTree     :: Maybe String
                                        <?> "([Nothing] | FILE) The name of the file to output the tree in JSON format."
                        }
