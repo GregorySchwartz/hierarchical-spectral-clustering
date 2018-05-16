@@ -69,7 +69,8 @@ data Options = Options { clusteringType :: Maybe String
                        }
                deriving (Generic)
 
-instance ParseRecord Options
+instance ParseRecord Options where
+    parseRecord = parseRecordWithModifiers lispCaseModifiers
 
 main :: IO ()
 main = do
