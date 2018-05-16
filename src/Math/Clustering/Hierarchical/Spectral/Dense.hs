@@ -17,7 +17,7 @@ import Data.Bool (bool)
 import Data.Clustering.Hierarchical (Dendrogram (..))
 import Data.Maybe (fromMaybe)
 import Data.Tree (Tree (..))
-import Math.Clustering.Spectral.Dense (spectralClusterNorm)
+import Math.Clustering.Spectral.Dense (spectralClusterNorm, spectralClusterKNorm)
 import Math.Modularity.Dense (getModularity)
 import Math.Modularity.Types (Q (..))
 import qualified Data.Foldable as F
@@ -34,11 +34,12 @@ type Items a         = V.Vector a
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can also use minimum number
 -- of observations in a cluster as the stopping criteria.
-hierarchicalSpectralCluster :: Maybe Int
+hierarchicalSpectralCluster :: EigenGroup
+                            -> Maybe Int
                             -> Items a
                             -> AdjacencyMatrix
                             -> ClusteringTree a
-hierarchicalSpectralCluster !minSizeMay !items !adjMat =
+hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
     if ngMod > Q 0
         && H.rows adjMat > 1
         && H.rows left >= minSize
@@ -46,8 +47,8 @@ hierarchicalSpectralCluster !minSizeMay !items !adjMat =
         then
             Node { rootLabel = vertex
                  , subForest =
-                    [ hierarchicalSpectralCluster minSizeMay (getItems leftIdxs) left
-                    , hierarchicalSpectralCluster minSizeMay (getItems rightIdxs) right
+                    [ hierarchicalSpectralCluster eigenGroup minSizeMay (getItems leftIdxs) left
+                    , hierarchicalSpectralCluster eigenGroup minSizeMay (getItems rightIdxs) right
                     ]
                  }
         else
@@ -57,7 +58,10 @@ hierarchicalSpectralCluster !minSizeMay !items !adjMat =
     vertex      = ClusteringVertex { _clusteringItems = items
                                    , _ngMod = ngMod
                                    }
-    clusters    = spectralClusterNorm adjMat
+    clusters    = spectralClustering eigenGroup adjMat
+    spectralClustering :: EigenGroup -> AdjacencyMatrix -> H.Vector Double
+    spectralClustering SignGroup   = spectralClusterNorm
+    spectralClustering KMeansGroup = spectralClusterKNorm 2
     ngMod       = getModularity clusters $ adjMat
     getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
     leftIdxs    = getIdxs 0 $ clusters

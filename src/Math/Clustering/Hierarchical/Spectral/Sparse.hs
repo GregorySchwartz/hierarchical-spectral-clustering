@@ -20,7 +20,7 @@ import Data.Bool (bool)
 import Data.Clustering.Hierarchical (Dendrogram (..))
 import Data.Maybe (fromMaybe)
 import Data.Tree (Tree (..))
-import Math.Clustering.Spectral.Sparse (B (..), getB, spectralCluster)
+import Math.Clustering.Spectral.Sparse (B (..), getB, spectralCluster, spectralClusterK)
 import Math.Modularity.Sparse (getBModularity)
 import Math.Modularity.Types (Q (..))
 import qualified Data.Foldable as F
@@ -43,12 +43,13 @@ type NormalizeFlag   = Bool
 -- has column features and row observations. Items correspond to rows. Can
 -- use FeatureMatrix or a pre-generated B matrix. See Shu et al., "Efficient
 -- Spectral Neighborhood Blocking for Entity Resolution", 2011.
-hierarchicalSpectralCluster :: NormalizeFlag
+hierarchicalSpectralCluster :: EigenGroup
+                            -> NormalizeFlag
                             -> Maybe Int
                             -> Items a
                             -> Either FeatureMatrix B
                             -> (ClusteringTree a, B)
-hierarchicalSpectralCluster normFlag initMinSizeMay initItems initMat =
+hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat =
     (go initMinSizeMay initItems initB, initB)
   where
     initB = either (getB normFlag) id $ initMat
@@ -74,7 +75,10 @@ hierarchicalSpectralCluster normFlag initMinSizeMay initItems initMat =
                         , _ngMod = ngMod
                         }
         clusters :: S.SpVector Double
-        clusters    = spectralCluster b
+        clusters = spectralClustering eigenGroup b
+        spectralClustering :: EigenGroup -> B -> S.SpVector Double
+        spectralClustering SignGroup   = spectralCluster
+        spectralClustering KMeansGroup = spectralClusterK 2
         ngMod :: Q
         ngMod       = getBModularity clusters $ b
         getSortedIdxs :: Double -> S.SpVector Double -> [Int]

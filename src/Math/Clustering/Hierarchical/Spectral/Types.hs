@@ -11,6 +11,7 @@ Collects the types used in hierarchical clustering.
 module Math.Clustering.Hierarchical.Spectral.Types
     ( ClusteringTree (..)
     , ClusteringVertex (..)
+    , EigenGroup (..)
     , clusteringTreeToDendrogram
     , clusteringTreeToDendrogramCumulative
     , getClusterItemsDend
@@ -33,6 +34,8 @@ import qualified Data.Vector as V
 
 type Items a         = V.Vector a
 type ClusteringTree a = Tree (ClusteringVertex a)
+
+data EigenGroup = SignGroup | KMeansGroup deriving (Read, Show, Generic)
 
 data ClusteringVertex a = ClusteringVertex
     { _clusteringItems  :: !(Items a)

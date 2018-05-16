@@ -62,6 +62,8 @@ data Options = Options { clusteringType :: Maybe String
                                        <?> "([,] | CHAR) The delimiter of the CSV file. Format is row,column,value with no header."
                        , minSize        :: Maybe Int
                                        <?> "([Nothing] | INT) Minimum size of a cluster."
+                       , eigenGroup     :: Maybe String
+                                       <?> "([SignGroup] | KMeansGroup) Whether to group the eigenvector using the sign or kmeans. While the default is sign, kmeans may be more accurate (but starting points are arbitrary)."
                        , outputTree     :: Maybe String
                                        <?> "([Nothing] | FILE) The name of the file to output the tree in JSON format."
                        }
@@ -82,6 +84,7 @@ main = do
         delim'          =
             Delimiter . fromMaybe ',' . unHelpful . delimiter $ opts
         minSize'        = fmap MinSize . unHelpful . minSize $ opts
+        eigenGroup'     = maybe SignGroup read . unHelpful . eigenGroup $ opts
         outputTree'     = fmap OutputTree . unHelpful . outputTree $ opts
         decodeOpt       = CSV.defaultDecodeOptions
                             { CSV.decDelimiter =
@@ -95,7 +98,12 @@ main = do
     clusteringTree <- do
         (items, mat) <- readDenseAdjMatrix decodeOpt stdin
 
-        return $ hierarchicalSpectralCluster (fmap unMinSize minSize') items mat
+        return
+            $ hierarchicalSpectralCluster
+                eigenGroup'
+                (fmap unMinSize minSize')
+                items
+                mat
 
     let clustering = zip [1..] . getClusterItemsTree $ clusteringTree
         body :: [(T.Text, Double)]

@@ -78,6 +78,14 @@ exampleMatrix n records =
 
 --clusterExample :: ClusteringTree String ShowB
 clusterExample = hierarchicalSpectralCluster
+                    SignGroup
+                    True
+                    Nothing
+                    exampleItems
+                    (Left $ exampleMatrix 3 exampleData)
+
+clusterKExample = hierarchicalSpectralCluster
+                    KMeansGroup
                     True
                     Nothing
                     exampleItems
@@ -95,6 +103,13 @@ denseAdjacencyExample = H.assoc (S.dimSM adjacencyExample) 0
                       $ adjacencyExample
 
 denseClusterExample = Dense.hierarchicalSpectralCluster
+                        SignGroup
+                        Nothing
+                        exampleItems
+                        denseAdjacencyExample
+
+denseClusterKExample = Dense.hierarchicalSpectralCluster
+                        KMeansGroup
                         Nothing
                         exampleItems
                         denseAdjacencyExample
