@@ -21,6 +21,7 @@ import Math.Clustering.Spectral.Dense (spectralClusterNorm, spectralClusterKNorm
 import Math.Modularity.Dense (getModularity)
 import Math.Modularity.Types (Q (..))
 import qualified Data.Foldable as F
+import qualified Data.Set as Set
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 import qualified Numeric.LinearAlgebra as H
@@ -30,6 +31,10 @@ import Math.Clustering.Hierarchical.Spectral.Types
 
 type AdjacencyMatrix = H.Matrix Double
 type Items a         = V.Vector a
+
+-- | Check if there is more than one cluster.
+hasMultipleClusters :: H.Vector Double -> Bool
+hasMultipleClusters = (> 1) . Set.size . Set.fromList . H.toList
 
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can also use minimum number
@@ -44,6 +49,7 @@ hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
         && H.rows adjMat > 1
         && H.rows left >= minSize
         && H.rows right >= minSize
+        && hasMultipleClusters clusters
         then
             Node { rootLabel = vertex
                  , subForest =

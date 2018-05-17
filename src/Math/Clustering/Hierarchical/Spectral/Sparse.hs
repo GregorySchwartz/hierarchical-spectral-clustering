@@ -24,6 +24,7 @@ import Math.Clustering.Spectral.Sparse (B (..), getB, spectralCluster, spectralC
 import Math.Modularity.Sparse (getBModularity)
 import Math.Modularity.Types (Q (..))
 import qualified Data.Foldable as F
+import qualified Data.Set as Set
 import qualified Data.Sparse.Common as S
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
@@ -36,6 +37,10 @@ type FeatureMatrix   = S.SpMatrix Double
 type Items a         = V.Vector a
 type ShowB           = ((Int, Int), [(Int, Int, Double)])
 type NormalizeFlag   = Bool
+
+-- | Check if there is more than one cluster.
+hasMultipleClusters :: S.SpVector Double -> Bool
+hasMultipleClusters = (> 1) . Set.size . Set.fromList . S.toDenseListSV
 
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can use minimum number of
@@ -59,6 +64,7 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
             && (S.nrows $ unB b) > 1
             && S.nrows (unB left) >= minSize
             && S.nrows (unB right) >= minSize
+            && hasMultipleClusters clusters
             then
                 Node { rootLabel = vertex
                      , subForest = [ go minSizeMay (getItems leftIdxs) left
