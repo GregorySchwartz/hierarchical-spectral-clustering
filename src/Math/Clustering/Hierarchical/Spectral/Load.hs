@@ -9,6 +9,7 @@ Collects the functions pertaining to loading a matrix.
 module Math.Clustering.Hierarchical.Spectral.Load
     ( readDenseAdjMatrix
     , readSparseAdjMatrix
+    , readEigenSparseAdjMatrix
     ) where
 
 -- Remote
@@ -18,6 +19,7 @@ import Data.Maybe (fromMaybe, catMaybes)
 import System.IO (Handle (..))
 import qualified Data.ByteString.Streaming.Char8 as BS
 import qualified Data.Csv as CSV
+import qualified Data.Eigen.SparseMatrix as E
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Sparse.Common as SH
@@ -124,6 +126,30 @@ readSparseAdjMatrix decodeOpt handle = flip with return $ do
 
     let items = V.fromList $ getAllIndices assocList
         mat   = SH.fromListSM (V.length items, V.length items)
+              . fmap (\((i, j), v) -> (i, j, v))
+              . symmetric -- Ensure symmetry.
+              . zeroDiag -- Ensure zeros on diagonal.
+              . getNewIndices -- Only look at present rows by converting indices.
+              $ assocList
+
+    return (items, mat)
+
+-- | Get a sparse adjacency matrix from a handle.
+readEigenSparseAdjMatrix :: CSV.DecodeOptions
+                    -> Handle
+                    -> IO (V.Vector T.Text, E.SparseMatrixXd)
+readEigenSparseAdjMatrix decodeOpt handle = flip with return $ do
+    let getAssocList = S.toList_ . S.map parseRow
+
+    assocList <-
+        fmap (either (error . show) id)
+            . runExceptT
+            . getAssocList
+            . S.decodeWith decodeOpt S.NoHeader
+            $ (BS.hGetContents handle :: BS.ByteString (ExceptT S.CsvParseException Managed) ())
+
+    let items = V.fromList $ getAllIndices assocList
+        mat   = E.fromList (V.length items) (V.length items)
               . fmap (\((i, j), v) -> (i, j, v))
               . symmetric -- Ensure symmetry.
               . zeroDiag -- Ensure zeros on diagonal.

@@ -40,8 +40,10 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
+- /home/gw/code/utility/eigen-sparse-utils/
 - /home/gw/code/utility/spectral-clustering/
 - /home/gw/code/utility/modularity/
+- eigen-2.1.7
 - hmatrix-svdlibc-0.4.1
 - sparse-linear-algebra-0.3.1
 - streaming-cassava-0.1.0.1

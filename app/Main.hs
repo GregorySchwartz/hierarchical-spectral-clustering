@@ -34,7 +34,7 @@ import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as H
 
 -- Local
-import Math.Clustering.Hierarchical.Spectral.Dense
+import Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix
 import Math.Clustering.Hierarchical.Spectral.Load
 import Math.Clustering.Hierarchical.Spectral.Types
 
@@ -97,7 +97,7 @@ main = do
                             }
 
     clusteringTree <- do
-        (items, mat) <- readDenseAdjMatrix decodeOpt stdin
+        (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
 
         return
             $ hierarchicalSpectralCluster

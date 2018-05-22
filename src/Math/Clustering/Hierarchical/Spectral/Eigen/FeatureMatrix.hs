@@ -1,13 +1,13 @@
-{- Math.Clustering.Hierarchical.Spectral.Sparse
+{- Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix
 Gregory W. Schwartz
 
-Collects the functions pertaining to hierarchical spectral clustering for sparse
-data.
+Collects the functions pertaining to hierarchical spectral clustering for
+feature matrices.
 -}
 
 {-# LANGUAGE BangPatterns #-}
 
-module Math.Clustering.Hierarchical.Spectral.Sparse
+module Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix
     ( hierarchicalSpectralCluster
     , FeatureMatrix (..)
     , B (..)
@@ -20,27 +20,33 @@ import Data.Bool (bool)
 import Data.Clustering.Hierarchical (Dendrogram (..))
 import Data.Maybe (fromMaybe)
 import Data.Tree (Tree (..))
-import Math.Clustering.Spectral.Sparse (B (..), getB, spectralCluster, spectralClusterK)
-import Math.Modularity.Sparse (getBModularity)
+import Math.Clustering.Spectral.Eigen.FeatureMatrix (B (..), getB, spectralCluster, spectralClusterK)
+import Math.Modularity.Eigen.Sparse (getBModularity)
 import Math.Modularity.Types (Q (..))
+import Safe (headMay)
 import qualified Data.Foldable as F
 import qualified Data.Set as Set
-import qualified Data.Sparse.Common as S
+import qualified Data.Eigen.SparseMatrix as S
+import qualified Data.Eigen.SparseMatrix.Utility as S
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
-import qualified Numeric.LinearAlgebra.Sparse as S
 
 -- Local
 import Math.Clustering.Hierarchical.Spectral.Types
 
-type FeatureMatrix   = S.SpMatrix Double
+type FeatureMatrix   = S.SparseMatrixXd
 type Items a         = V.Vector a
 type ShowB           = ((Int, Int), [(Int, Int, Double)])
 type NormalizeFlag   = Bool
 
 -- | Check if there is more than one cluster.
-hasMultipleClusters :: S.SpVector Double -> Bool
-hasMultipleClusters = (> 1) . Set.size . Set.fromList . S.toDenseListSV
+hasMultipleClusters :: S.SparseMatrixXd -> Bool
+hasMultipleClusters = (> 1)
+                    . Set.size
+                    . Set.fromList
+                    . fromMaybe (error "No rows in \"vector\".")
+                    . headMay
+                    . S.toDenseList
 
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can use minimum number of
@@ -61,9 +67,9 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
     go :: Maybe Int -> Items a -> B -> ClusteringTree a
     go !minSizeMay !items !b =
         if ngMod > Q 0
-            && (S.nrows $ unB b) > 1
-            && S.nrows (unB left) >= minSize
-            && S.nrows (unB right) >= minSize
+            && (S.rows $ unB b) > 1
+            && S.rows (unB left) >= minSize
+            && S.rows (unB right) >= minSize
             && hasMultipleClusters clusters
             then
                 Node { rootLabel = vertex
@@ -80,17 +86,19 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
                         { _clusteringItems = items
                         , _ngMod = ngMod
                         }
-        clusters :: S.SpVector Double
+        clusters :: S.SparseMatrixXd
         clusters = spectralClustering eigenGroup b
-        spectralClustering :: EigenGroup -> B -> S.SpVector Double
+        spectralClustering :: EigenGroup -> B -> S.SparseMatrixXd
         spectralClustering SignGroup   = spectralCluster
         spectralClustering KMeansGroup = spectralClusterK 2
         ngMod :: Q
         ngMod       = getBModularity clusters $ b
-        getSortedIdxs :: Double -> S.SpVector Double -> [Int]
+        getSortedIdxs :: Double -> S.SparseMatrixXd -> [Int]
         getSortedIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                           . VS.fromList
-                          . S.toDenseListSV
+                          . fromMaybe (error "No rows in \"vector\".")
+                          . headMay
+                          . S.toDenseList
         leftIdxs :: [Int]
         leftIdxs    = getSortedIdxs 0 $ clusters
         rightIdxs :: [Int]
@@ -99,7 +107,7 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
         left        = B $ extractRows (unB b) leftIdxs
         right :: B
         right       = B $ extractRows (unB b) rightIdxs
-        extractRows :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
-        extractRows mat = S.transposeSM . S.fromColsL . fmap (S.extractRow mat)
+        extractRows :: S.SparseMatrixXd -> [Int] -> S.SparseMatrixXd
+        extractRows mat = S.fromRows . fmap (flip S.getRow mat)
         getItems    =
             V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) []

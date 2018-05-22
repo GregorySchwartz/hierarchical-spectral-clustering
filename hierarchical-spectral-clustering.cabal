@@ -18,17 +18,22 @@ library
   exposed-modules:     Math.Clustering.Hierarchical.Spectral.Dense
                      , Math.Clustering.Hierarchical.Spectral.Sparse
                      , Math.Clustering.Hierarchical.Spectral.Load
+                     , Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix
+                     , Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix
                      , Math.Clustering.Hierarchical.Spectral.Types
   other-modules:       Math.Clustering.Hierarchical.Spectral.Test
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , cassava
                      , containers
+                     , eigen
+                     , eigen-sparse-utils
                      , hierarchical-clustering
                      , hmatrix
                      , managed
                      , modularity
                      , mtl
+                     , safe
                      , sparse-linear-algebra
                      , spectral-clustering
                      , streaming
