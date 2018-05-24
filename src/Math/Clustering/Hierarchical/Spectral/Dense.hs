@@ -76,4 +76,10 @@ hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
     right       =
         adjMat H.?? (H.Pos (H.idxs rightIdxs), H.Pos (H.idxs rightIdxs))
     getItems    =
-        V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) [] . V.fromList
+            V.fromList
+                . F.foldr' (\ !i !acc
+                           -> ( fromMaybe (error "Matrix has more rows than items.")
+                              $ items V.!? i
+                              ) : acc
+                           ) []
+                . V.fromList

@@ -23,7 +23,6 @@ import Data.Tree (Tree (..))
 import Math.Clustering.Spectral.Eigen.FeatureMatrix (B (..), getB, spectralCluster, spectralClusterK)
 import Math.Modularity.Eigen.Sparse (getBModularity)
 import Math.Modularity.Types (Q (..))
-import Safe (headMay)
 import qualified Data.Foldable as F
 import qualified Data.Set as Set
 import qualified Data.Eigen.SparseMatrix as S
@@ -44,8 +43,7 @@ hasMultipleClusters :: S.SparseMatrixXd -> Bool
 hasMultipleClusters = (> 1)
                     . Set.size
                     . Set.fromList
-                    . fromMaybe (error "No rows in \"vector\".")
-                    . headMay
+                    . concat
                     . S.toDenseList
 
 -- | Generates a tree through divisive hierarchical clustering using
@@ -96,8 +94,7 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
         getSortedIdxs :: Double -> S.SparseMatrixXd -> [Int]
         getSortedIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                           . VS.fromList
-                          . fromMaybe (error "No rows in \"vector\".")
-                          . headMay
+                          . concat
                           . S.toDenseList
         leftIdxs :: [Int]
         leftIdxs    = getSortedIdxs 0 $ clusters
@@ -110,4 +107,9 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
         extractRows :: S.SparseMatrixXd -> [Int] -> S.SparseMatrixXd
         extractRows mat = S.fromRows . fmap (flip S.getRow mat)
         getItems    =
-            V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) []
+            V.fromList
+                . F.foldr' (\ !i !acc
+                           -> ( fromMaybe (error "Matrix has more rows than items.")
+                              $ items V.!? i
+                              ) : acc
+                           ) []

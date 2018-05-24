@@ -102,4 +102,9 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
         extractRows :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
         extractRows mat = S.transposeSM . S.fromColsL . fmap (S.extractRow mat)
         getItems    =
-            V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) []
+            V.fromList
+                . F.foldr' (\ !i !acc
+                           -> ( fromMaybe (error "Matrix has more rows than items.")
+                              $ items V.!? i
+                              ) : acc
+                           ) []

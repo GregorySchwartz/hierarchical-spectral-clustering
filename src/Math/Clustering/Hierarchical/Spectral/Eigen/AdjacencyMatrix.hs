@@ -52,29 +52,29 @@ hierarchicalSpectralCluster :: EigenGroup
                             -> AdjacencyMatrix
                             -> ClusteringTree a
 hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
+
     if ngMod > Q 0
         && S.rows adjMat > 1
         && S.rows left >= minSize
         && S.rows right >= minSize
         && hasMultipleClusters clusters
-        then
+        then do
             Node { rootLabel = vertex
-                 , subForest =
-                    [ hierarchicalSpectralCluster eigenGroup minSizeMay (getItems leftIdxs) left
-                    , hierarchicalSpectralCluster eigenGroup minSizeMay (getItems rightIdxs) right
-                    ]
+                 , subForest = [ hierarchicalSpectralCluster eigenGroup minSizeMay (getItems leftIdxs) left
+                               , hierarchicalSpectralCluster eigenGroup minSizeMay (getItems rightIdxs) right
+                               ]
                  }
         else
             Node {rootLabel = vertex, subForest = []}
   where
-    minSize     = fromMaybe 1 minSizeMay
-    vertex      = ClusteringVertex { _clusteringItems = items
-                                   , _ngMod = ngMod
-                                   }
-    clusters    = spectralClustering eigenGroup adjMat
+    clusters = spectralClustering eigenGroup adjMat
     spectralClustering :: EigenGroup -> AdjacencyMatrix -> S.SparseMatrixXd
     spectralClustering SignGroup   = spectralClusterNorm
     spectralClustering KMeansGroup = spectralClusterKNorm 2
+    minSize     = fromMaybe 1 minSizeMay
+    vertex      = ClusteringVertex { _clusteringItems = items
+                                 , _ngMod = ngMod
+                                 }
     ngMod       = getModularity clusters $ adjMat
     getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                 . VS.fromList
@@ -85,4 +85,10 @@ hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
     rightIdxs   = getIdxs 1 clusters
     left        = S.squareSubset leftIdxs adjMat
     right       = S.squareSubset rightIdxs adjMat
-    getItems    = V.fromList . F.foldr' (\ !i !acc -> (items V.! i) : acc) []
+    getItems    =
+            V.fromList
+                . F.foldr' (\ !i !acc
+                           -> ( fromMaybe (error "Matrix has more rows than items.")
+                              $ items V.!? i
+                              ) : acc
+                           ) []

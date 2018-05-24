@@ -99,12 +99,11 @@ main = do
     clusteringTree <- do
         (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
 
-        return
-            $ hierarchicalSpectralCluster
-                eigenGroup'
-                (fmap unMinSize minSize')
-                items
-                mat
+        return $ hierarchicalSpectralCluster
+                    eigenGroup'
+                    (fmap unMinSize minSize')
+                    items
+                    mat
 
     let clustering = zip [1..] . getClusterItemsTree $ clusteringTree
         body :: [(T.Text, Double)]
