@@ -90,16 +90,16 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
         spectralClustering SignGroup   = spectralCluster
         spectralClustering KMeansGroup = spectralClusterK 2
         ngMod :: Q
-        ngMod       = getBModularity clusters $ b
+        ngMod = getBModularity clusters b
         getSortedIdxs :: Double -> S.SparseMatrixXd -> [Int]
         getSortedIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                           . VS.fromList
                           . concat
                           . S.toDenseList
         leftIdxs :: [Int]
-        leftIdxs    = getSortedIdxs 0 $ clusters
+        leftIdxs    = getSortedIdxs 0 clusters
         rightIdxs :: [Int]
-        rightIdxs   = getSortedIdxs 1 $ clusters
+        rightIdxs   = getSortedIdxs 1 clusters
         left :: B
         left        = B $ extractRows (unB b) leftIdxs
         right :: B

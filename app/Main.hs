@@ -34,7 +34,8 @@ import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as H
 
 -- Local
-import Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix
+import qualified Math.Clustering.Hierarchical.Spectral.Dense as HD
+import qualified Math.Clustering.Hierarchical.Spectral.Sparse as HS
 import Math.Clustering.Hierarchical.Spectral.Load
 import Math.Clustering.Hierarchical.Spectral.Types
 
@@ -45,7 +46,7 @@ newtype Column     = Column { unColumn :: Int } deriving (Eq, Ord, Read, Show)
 newtype OutputTree = OutputTree { unOutputTree :: String } deriving (Read, Show)
 newtype MinSize    = MinSize { unMinSize :: Int } deriving (Read, Show)
 
-data ClusteringType = Dense deriving (Read, Show)
+data ClusteringType = Sparse | Dense deriving (Read, Show)
 
 instance A.ToJSON Q where
       toEncoding = A.genericToEncoding A.defaultOptions
@@ -57,7 +58,7 @@ instance (A.FromJSON a) => A.FromJSON (ClusteringVertex a)
 
 -- | Command line arguments
 data Options = Options { clusteringType :: Maybe String
-                                       <?> "([Dense]) Method for clustering data. Dense only so far."
+                                       <?> "([Sparse] | Dense) Method for clustering data."
                        , delimiter      :: Maybe Char
                                        <?> "([,] | CHAR) The delimiter of the CSV file. Format is row,column,value with no header."
                        , minSize        :: Maybe Int
@@ -81,7 +82,7 @@ main = do
                       \ adjacency matrix.\
                       \ Format is row,column,value with no header."
 
-    let clusteringType' = maybe Dense read . unHelpful . clusteringType $ opts
+    let clusteringType' = maybe Sparse read . unHelpful . clusteringType $ opts
         delim'          =
             Delimiter . fromMaybe ',' . unHelpful . delimiter $ opts
         minSize'        = fmap MinSize . unHelpful . minSize $ opts
@@ -96,14 +97,24 @@ main = do
                                 fromIntegral (ord . unDelimiter $ delim')
                             }
 
-    clusteringTree <- do
-        (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
+    clusteringTree <-
+        case clusteringType' of
+            Dense -> do
+                (items, mat) <- readDenseAdjMatrix decodeOpt stdin
 
-        return $ hierarchicalSpectralCluster
-                    eigenGroup'
-                    (fmap unMinSize minSize')
-                    items
-                    mat
+                return $ HD.hierarchicalSpectralCluster
+                            eigenGroup'
+                            (fmap unMinSize minSize')
+                            items
+                            mat
+            Sparse -> do
+                (items, mat) <- readSparseAdjMatrix decodeOpt stdin
+
+                return $ HS.hierarchicalSpectralClusterAdj
+                            eigenGroup'
+                            (fmap unMinSize minSize')
+                            items
+                            mat
 
     let clustering = zip [1..] . getClusterItemsTree $ clusteringTree
         body :: [(T.Text, Double)]

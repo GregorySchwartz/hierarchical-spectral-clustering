@@ -39,8 +39,7 @@ hasMultipleClusters :: S.SparseMatrixXd -> Bool
 hasMultipleClusters = (> 1)
                     . Set.size
                     . Set.fromList
-                    . fromMaybe (error "No rows in \"vector\".")
-                    . headMay
+                    . concat
                     . S.toDenseList
 
 -- | Generates a tree through divisive hierarchical clustering using
@@ -78,8 +77,7 @@ hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
     ngMod       = getModularity clusters $ adjMat
     getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                 . VS.fromList
-                . fromMaybe (error "No rows in \"vector\".")
-                . headMay
+                . concat
                 . S.toDenseList
     leftIdxs    = getIdxs 0 clusters
     rightIdxs   = getIdxs 1 clusters

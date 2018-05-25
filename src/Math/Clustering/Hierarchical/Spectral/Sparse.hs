@@ -9,6 +9,7 @@ data.
 
 module Math.Clustering.Hierarchical.Spectral.Sparse
     ( hierarchicalSpectralCluster
+    , hierarchicalSpectralClusterAdj
     , FeatureMatrix (..)
     , B (..)
     , Items (..)
@@ -20,8 +21,8 @@ import Data.Bool (bool)
 import Data.Clustering.Hierarchical (Dendrogram (..))
 import Data.Maybe (fromMaybe)
 import Data.Tree (Tree (..))
-import Math.Clustering.Spectral.Sparse (B (..), getB, spectralCluster, spectralClusterK)
-import Math.Modularity.Sparse (getBModularity)
+import Math.Clustering.Spectral.Sparse (B (..), AdjacencyMatrix (..), getB, spectralCluster, spectralClusterK, spectralClusterNorm, spectralClusterKNorm)
+import Math.Modularity.Sparse (getBModularity, getModularity)
 import Math.Modularity.Types (Q (..))
 import qualified Data.Foldable as F
 import qualified Data.Set as Set
@@ -101,6 +102,74 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
         right       = B $ extractRows (unB b) rightIdxs
         extractRows :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
         extractRows mat = S.transposeSM . S.fromColsL . fmap (S.extractRow mat)
+        getItems    =
+            V.fromList
+                . F.foldr' (\ !i !acc
+                           -> ( fromMaybe (error "Matrix has more rows than items.")
+                              $ items V.!? i
+                              ) : acc
+                           ) []
+
+-- | Generates a tree through divisive hierarchical clustering using
+-- Newman-Girvan modularity as a stopping criteria. Can use minimum number of
+-- observations in a cluster as a stopping criteria. Uses an adjacency matrix.
+-- Items correspond to rows.
+hierarchicalSpectralClusterAdj :: EigenGroup
+                               -> Maybe Int
+                               -> Items a
+                               -> AdjacencyMatrix
+                               -> ClusteringTree a
+hierarchicalSpectralClusterAdj eigenGroup initMinSizeMay initItems initMat =
+    go initMinSizeMay initItems initMat
+  where
+    go :: Maybe Int -> Items a -> AdjacencyMatrix -> ClusteringTree a
+    go !minSizeMay !items !mat =
+        if ngMod > Q 0
+            && (S.nrows $ mat) > 1
+            && S.nrows mat >= minSize
+            && S.nrows mat >= minSize
+            && hasMultipleClusters clusters
+            then
+                Node { rootLabel = vertex
+                     , subForest = [ go minSizeMay (getItems leftIdxs) left
+                                   , go minSizeMay (getItems rightIdxs) right
+                                   ]
+                     }
+
+            else
+                Node {rootLabel = vertex, subForest = []}
+      where
+        minSize     = fromMaybe 1 minSizeMay
+        vertex      = ClusteringVertex
+                        { _clusteringItems = items
+                        , _ngMod = ngMod
+                        }
+        clusters :: S.SpVector Double
+        clusters = spectralClustering eigenGroup mat
+        spectralClustering :: EigenGroup -> AdjacencyMatrix -> S.SpVector Double
+        spectralClustering SignGroup   = spectralClusterNorm
+        spectralClustering KMeansGroup = spectralClusterKNorm 2
+        ngMod :: Q
+        ngMod = getModularity clusters mat
+        getSortedIdxs :: Double -> S.SpVector Double -> [Int]
+        getSortedIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
+                          . VS.fromList
+                          . S.toDenseListSV
+        leftIdxs :: [Int]
+        leftIdxs    = getSortedIdxs 0 $ clusters
+        rightIdxs :: [Int]
+        rightIdxs   = getSortedIdxs 1 $ clusters
+        left :: AdjacencyMatrix
+        left        = getSubMat mat leftIdxs
+        right :: AdjacencyMatrix
+        right       = getSubMat mat rightIdxs
+        getSubMat :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
+        getSubMat mat is = S.fromColsL
+                         . (\x -> fmap (S.extractCol x) is)
+                         . S.transposeSM
+                         . S.fromColsL
+                         . fmap (S.extractRow mat)
+                         $ is
         getItems    =
             V.fromList
                 . F.foldr' (\ !i !acc

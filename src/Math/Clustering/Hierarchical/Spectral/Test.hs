@@ -81,7 +81,6 @@ exampleMatrix n records =
              . concatMap (getQGrams n)
              $ records
 
---clusterExample :: ClusteringTree String ShowB
 clusterExample = hierarchicalSpectralCluster
                     SignGroup
                     True
@@ -96,8 +95,20 @@ clusterKExample = hierarchicalSpectralCluster
                     exampleItems
                     (Left $ exampleMatrix 3 exampleData)
 
+clusterAdjExample = hierarchicalSpectralClusterAdj
+                        SignGroup
+                        Nothing
+                        exampleItems
+                        adjacencyExample
+
+clusterKAdjExample = hierarchicalSpectralClusterAdj
+                        KMeansGroup
+                        Nothing
+                        exampleItems
+                        adjacencyExample
+
 adjacencyExample :: S.SpMatrix Double
-adjacencyExample = (unB b) S.##^ (unB b)
+adjacencyExample = S.filterSM (\i j _ -> i /= j) $ (unB b) S.##^ (unB b)
   where
     b = getB True $ exampleMatrix 3 exampleData
 
