@@ -41,11 +41,12 @@ hasMultipleClusters = (> 1) . Set.size . Set.fromList . H.toList
 -- of observations in a cluster as the stopping criteria.
 hierarchicalSpectralCluster :: EigenGroup
                             -> Maybe Int
+                            -> Maybe Q
                             -> Items a
                             -> AdjacencyMatrix
                             -> ClusteringTree a
-hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
-    if ngMod > Q 0
+hierarchicalSpectralCluster eigenGroup !minSizeMay !minModMay !items !adjMat =
+    if ngMod > minMod
         && H.rows adjMat > 1
         && H.rows left >= minSize
         && H.rows right >= minSize
@@ -53,13 +54,14 @@ hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
         then
             Node { rootLabel = vertex
                  , subForest =
-                    [ hierarchicalSpectralCluster eigenGroup minSizeMay (getItems leftIdxs) left
-                    , hierarchicalSpectralCluster eigenGroup minSizeMay (getItems rightIdxs) right
+                    [ hierarchicalSpectralCluster eigenGroup minSizeMay minModMay (getItems leftIdxs) left
+                    , hierarchicalSpectralCluster eigenGroup minSizeMay minModMay (getItems rightIdxs) right
                     ]
                  }
         else
             Node {rootLabel = vertex, subForest = []}
   where
+    minMod      = fromMaybe (Q 0) minModMay
     minSize     = fromMaybe 1 minSizeMay
     vertex      = ClusteringVertex { _clusteringItems = items
                                    , _ngMod = ngMod

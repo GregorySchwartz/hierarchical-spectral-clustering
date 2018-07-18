@@ -52,16 +52,17 @@ hasMultipleClusters = (> 1) . Set.size . Set.fromList . S.toDenseListSV
 hierarchicalSpectralCluster :: EigenGroup
                             -> NormalizeFlag
                             -> Maybe Int
+                            -> Maybe Q
                             -> Items a
                             -> Either FeatureMatrix B
                             -> ClusteringTree a
-hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat =
+hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay minModMay initItems initMat =
     go initMinSizeMay initItems initB
   where
     initB = either (getB normFlag) id $ initMat
     go :: Maybe Int -> Items a -> B -> ClusteringTree a
     go !minSizeMay !items !b =
-        if ngMod > Q 0
+        if ngMod > minMod
             && (S.nrows $ unB b) > 1
             && S.nrows (unB left) >= minSize
             && S.nrows (unB right) >= minSize
@@ -76,6 +77,7 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
             else
                 Node {rootLabel = vertex, subForest = []}
       where
+        minMod      = fromMaybe (Q 0) minModMay
         minSize     = fromMaybe 1 minSizeMay
         vertex      = ClusteringVertex
                         { _clusteringItems = items
@@ -116,15 +118,16 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
 -- Items correspond to rows.
 hierarchicalSpectralClusterAdj :: EigenGroup
                                -> Maybe Int
+                               -> Maybe Q
                                -> Items a
                                -> AdjacencyMatrix
                                -> ClusteringTree a
-hierarchicalSpectralClusterAdj eigenGroup initMinSizeMay initItems initMat =
+hierarchicalSpectralClusterAdj eigenGroup initMinSizeMay minModMay initItems initMat =
     go initMinSizeMay initItems initMat
   where
     go :: Maybe Int -> Items a -> AdjacencyMatrix -> ClusteringTree a
     go !minSizeMay !items !mat =
-        if ngMod > Q 0
+        if ngMod > minMod
             && (S.nrows $ mat) > 1
             && S.nrows mat >= minSize
             && S.nrows mat >= minSize
@@ -139,6 +142,7 @@ hierarchicalSpectralClusterAdj eigenGroup initMinSizeMay initItems initMat =
             else
                 Node {rootLabel = vertex, subForest = []}
       where
+        minMod      = fromMaybe (Q 0) minModMay
         minSize     = fromMaybe 1 minSizeMay
         vertex      = ClusteringVertex
                         { _clusteringItems = items

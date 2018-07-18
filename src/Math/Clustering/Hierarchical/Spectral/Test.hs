@@ -85,6 +85,7 @@ clusterExample = hierarchicalSpectralCluster
                     SignGroup
                     True
                     Nothing
+                    Nothing
                     exampleItems
                     (Left $ exampleMatrix 3 exampleData)
 
@@ -92,17 +93,20 @@ clusterKExample = hierarchicalSpectralCluster
                     KMeansGroup
                     True
                     Nothing
+                    Nothing
                     exampleItems
                     (Left $ exampleMatrix 3 exampleData)
 
 clusterAdjExample = hierarchicalSpectralClusterAdj
                         SignGroup
                         Nothing
+                        Nothing
                         exampleItems
                         adjacencyExample
 
 clusterKAdjExample = hierarchicalSpectralClusterAdj
                         KMeansGroup
+                        Nothing
                         Nothing
                         exampleItems
                         adjacencyExample
@@ -121,11 +125,13 @@ denseAdjacencyExample = H.assoc (S.dimSM adjacencyExample) 0
 denseClusterExample = Dense.hierarchicalSpectralCluster
                         SignGroup
                         Nothing
+                        Nothing
                         exampleItems
                         denseAdjacencyExample
 
 denseClusterKExample = Dense.hierarchicalSpectralCluster
                         KMeansGroup
+                        Nothing
                         Nothing
                         exampleItems
                         denseAdjacencyExample
@@ -146,6 +152,7 @@ clusterEigenExample = EF.hierarchicalSpectralCluster
                         SignGroup
                         True
                         Nothing
+                        Nothing
                         exampleItems
                         (Left $ exampleEigenMatrix 3 exampleData)
 
@@ -153,17 +160,20 @@ clusterKEigenExample = EF.hierarchicalSpectralCluster
                         KMeansGroup
                         True
                         Nothing
+                        Nothing
                         exampleItems
                         (Left $ exampleEigenMatrix 3 exampleData)
 
 clusterAdjEigenExample = EA.hierarchicalSpectralCluster
                             SignGroup
                             Nothing
+                            Nothing
                             exampleItems
                             adjacencyEigenExample
 
 clusterKAdjEigenExample = EA.hierarchicalSpectralCluster
                         KMeansGroup
+                        Nothing
                         Nothing
                         exampleItems
                         adjacencyEigenExample

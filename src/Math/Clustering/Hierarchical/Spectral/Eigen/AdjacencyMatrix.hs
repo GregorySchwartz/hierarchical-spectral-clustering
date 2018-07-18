@@ -47,20 +47,21 @@ hasMultipleClusters = (> 1)
 -- of observations in a cluster as the stopping criteria.
 hierarchicalSpectralCluster :: EigenGroup
                             -> Maybe Int
+                            -> Maybe Q
                             -> Items a
                             -> AdjacencyMatrix
                             -> ClusteringTree a
-hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
+hierarchicalSpectralCluster !eigenGroup !minSizeMay !minModMay !items !adjMat =
 
-    if ngMod > Q 0
+    if ngMod > minMod
         && S.rows adjMat > 1
         && S.rows left >= minSize
         && S.rows right >= minSize
         && hasMultipleClusters clusters
         then do
             Node { rootLabel = vertex
-                 , subForest = [ hierarchicalSpectralCluster eigenGroup minSizeMay (getItems leftIdxs) left
-                               , hierarchicalSpectralCluster eigenGroup minSizeMay (getItems rightIdxs) right
+                 , subForest = [ hierarchicalSpectralCluster eigenGroup minSizeMay minModMay (getItems leftIdxs) left
+                               , hierarchicalSpectralCluster eigenGroup minSizeMay minModMay (getItems rightIdxs) right
                                ]
                  }
         else
@@ -70,11 +71,12 @@ hierarchicalSpectralCluster eigenGroup !minSizeMay !items !adjMat =
     spectralClustering :: EigenGroup -> AdjacencyMatrix -> S.SparseMatrixXd
     spectralClustering SignGroup   = spectralClusterNorm
     spectralClustering KMeansGroup = spectralClusterKNorm 2
+    minMod      = fromMaybe (Q 0) minModMay
     minSize     = fromMaybe 1 minSizeMay
     vertex      = ClusteringVertex { _clusteringItems = items
                                  , _ngMod = ngMod
                                  }
-    ngMod       = getModularity clusters $ adjMat
+    ngMod       = getModularity clusters adjMat
     getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                 . VS.fromList
                 . concat

@@ -55,16 +55,17 @@ hasMultipleClusters = (> 1)
 hierarchicalSpectralCluster :: EigenGroup
                             -> NormalizeFlag
                             -> Maybe Int
+                            -> Maybe Q
                             -> Items a
                             -> Either FeatureMatrix B
                             -> ClusteringTree a
-hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat =
+hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay minModMay initItems initMat =
     go initMinSizeMay initItems initB
   where
     initB = either (getB normFlag) id $ initMat
     go :: Maybe Int -> Items a -> B -> ClusteringTree a
     go !minSizeMay !items !b =
-        if ngMod > Q 0
+        if ngMod > minMod
             && (S.rows $ unB b) > 1
             && S.rows (unB left) >= minSize
             && S.rows (unB right) >= minSize
@@ -79,6 +80,7 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay initItems initMat
             else
                 Node {rootLabel = vertex, subForest = []}
       where
+        minMod      = fromMaybe (Q 0) minModMay
         minSize     = fromMaybe 1 minSizeMay
         vertex      = ClusteringVertex
                         { _clusteringItems = items

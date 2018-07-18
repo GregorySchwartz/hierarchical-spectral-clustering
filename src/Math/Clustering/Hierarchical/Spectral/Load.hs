@@ -103,6 +103,8 @@ readDenseAdjMatrix decodeOpt handle = flip with return $ do
 
     let items = V.fromList $ getAllIndices assocList
         mat   = H.assoc (V.length items, V.length items) 0
+                . Set.toList
+                . Set.fromList -- Ensure no duplicates.
                 . symmetric -- Ensure symmetry.
                 . zeroDiag -- Ensure zeros on diagonal.
                 . getNewIndices -- Only look at present rows by converting indices.
@@ -126,6 +128,8 @@ readSparseAdjMatrix decodeOpt handle = flip with return $ do
 
     let items = V.fromList $ getAllIndices assocList
         mat   = SH.fromListSM (V.length items, V.length items)
+              . Set.toList
+              . Set.fromList -- Ensure no duplicates.
               . fmap (\((i, j), v) -> (i, j, v))
               . symmetric -- Ensure symmetry.
               . zeroDiag -- Ensure zeros on diagonal.
@@ -150,6 +154,8 @@ readEigenSparseAdjMatrix decodeOpt handle = flip with return $ do
 
     let items = V.fromList $ getAllIndices assocList
         mat   = E.fromList (V.length items) (V.length items)
+              . Set.toList
+              . Set.fromList -- Ensure no duplicates.
               . fmap (\((i, j), v) -> (i, j, v))
               . symmetric -- Ensure symmetry.
               . zeroDiag -- Ensure zeros on diagonal.

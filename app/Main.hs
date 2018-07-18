@@ -35,7 +35,7 @@ import qualified Numeric.LinearAlgebra as H
 
 -- Local
 import qualified Math.Clustering.Hierarchical.Spectral.Dense as HD
-import qualified Math.Clustering.Hierarchical.Spectral.Sparse as HS
+import qualified Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix as HS
 import Math.Clustering.Hierarchical.Spectral.Load
 import Math.Clustering.Hierarchical.Spectral.Types
 
@@ -63,6 +63,8 @@ data Options = Options { clusteringType :: Maybe String
                                        <?> "([,] | CHAR) The delimiter of the CSV file. Format is row,column,value with no header."
                        , minSize        :: Maybe Int
                                        <?> "([Nothing] | INT) Minimum size of a cluster."
+                       , minModularity  :: Maybe Double
+                                       <?> "([0] | DOUBLE) Minimum modularity to be over to continue recursion."
                        , eigenGroup     :: Maybe String
                                        <?> "([SignGroup] | KMeansGroup) Whether to group the eigenvector using the sign or kmeans while clustering. While the default is sign, kmeans may be more accurate (but starting points are arbitrary)."
                        , outputTree     :: Maybe String
@@ -86,6 +88,7 @@ main = do
         delim'          =
             Delimiter . fromMaybe ',' . unHelpful . delimiter $ opts
         minSize'        = fmap MinSize . unHelpful . minSize $ opts
+        minModularity'  = fmap Q . unHelpful . minModularity $ opts
         eigenGroup'     = maybe SignGroup read . unHelpful . eigenGroup $ opts
         outputTree'     = fmap OutputTree . unHelpful . outputTree $ opts
         decodeOpt       = CSV.defaultDecodeOptions
@@ -105,14 +108,16 @@ main = do
                 return $ HD.hierarchicalSpectralCluster
                             eigenGroup'
                             (fmap unMinSize minSize')
+                            minModularity'
                             items
                             mat
             Sparse -> do
-                (items, mat) <- readSparseAdjMatrix decodeOpt stdin
+                (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
 
-                return $ HS.hierarchicalSpectralClusterAdj
+                return $ HS.hierarchicalSpectralCluster
                             eigenGroup'
                             (fmap unMinSize minSize')
+                            minModularity'
                             items
                             mat
 
