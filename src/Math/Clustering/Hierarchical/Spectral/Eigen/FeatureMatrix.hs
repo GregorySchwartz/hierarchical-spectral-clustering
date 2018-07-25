@@ -32,6 +32,7 @@ import qualified Data.Vector.Storable as VS
 
 -- Local
 import Math.Clustering.Hierarchical.Spectral.Types
+import Math.Clustering.Hierarchical.Spectral.Utility
 
 type FeatureMatrix   = S.SparseMatrixXd
 type Items a         = V.Vector a
@@ -54,17 +55,21 @@ hasMultipleClusters = (> 1)
 -- Spectral Neighborhood Blocking for Entity Resolution", 2011.
 hierarchicalSpectralCluster :: EigenGroup
                             -> NormalizeFlag
+                            -> Maybe NumEigen
                             -> Maybe Int
                             -> Maybe Q
                             -> Items a
                             -> Either FeatureMatrix B
                             -> ClusteringTree a
-hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay minModMay initItems initMat =
-    go initMinSizeMay initItems initB
+hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay initItems initMat =
+    go initItems initB
   where
     initB = either (getB normFlag) id $ initMat
-    go :: Maybe Int -> Items a -> B -> ClusteringTree a
-    go !minSizeMay !items !b =
+    minMod      = fromMaybe (Q 0) minModMay
+    minSize     = fromMaybe 1 minSizeMay
+    numEigen    = fromMaybe 1 numEigenMay
+    go :: Items a -> B -> ClusteringTree a
+    go !items !b =
         if ngMod > minMod
             && (S.rows $ unB b) > 1
             && S.rows (unB left) >= minSize
@@ -72,16 +77,14 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay minModMay initIte
             && hasMultipleClusters clusters
             then
                 Node { rootLabel = vertex
-                     , subForest = [ go minSizeMay (getItems leftIdxs) left
-                                   , go minSizeMay (getItems rightIdxs) right
+                     , subForest = [ go (subsetVector items leftIdxs) left
+                                   , go (subsetVector items rightIdxs) right
                                    ]
                      }
 
             else
                 Node {rootLabel = vertex, subForest = []}
       where
-        minMod      = fromMaybe (Q 0) minModMay
-        minSize     = fromMaybe 1 minSizeMay
         vertex      = ClusteringVertex
                         { _clusteringItems = items
                         , _ngMod = ngMod
@@ -90,7 +93,7 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay minModMay initIte
         clusters = spectralClustering eigenGroup b
         spectralClustering :: EigenGroup -> B -> S.SparseMatrixXd
         spectralClustering SignGroup   = spectralCluster
-        spectralClustering KMeansGroup = spectralClusterK 2
+        spectralClustering KMeansGroup = spectralClusterK numEigen 2
         ngMod :: Q
         ngMod = getBModularity clusters b
         getSortedIdxs :: Double -> S.SparseMatrixXd -> [Int]
@@ -108,10 +111,3 @@ hierarchicalSpectralCluster eigenGroup normFlag initMinSizeMay minModMay initIte
         right       = B $ extractRows (unB b) rightIdxs
         extractRows :: S.SparseMatrixXd -> [Int] -> S.SparseMatrixXd
         extractRows mat = S.fromRows . fmap (flip S.getRow mat)
-        getItems    =
-            V.fromList
-                . F.foldr' (\ !i !acc
-                           -> ( fromMaybe (error "Matrix has more rows than items.")
-                              $ items V.!? i
-                              ) : acc
-                           ) []

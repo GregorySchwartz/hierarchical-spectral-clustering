@@ -30,6 +30,7 @@ import qualified Data.Vector.Storable as VS
 
 -- Local
 import Math.Clustering.Hierarchical.Spectral.Types
+import Math.Clustering.Hierarchical.Spectral.Utility
 
 type AdjacencyMatrix = S.SparseMatrixXd
 type Items a         = V.Vector a
@@ -46,12 +47,13 @@ hasMultipleClusters = (> 1)
 -- Newman-Girvan modularity as a stopping criteria. Can also use minimum number
 -- of observations in a cluster as the stopping criteria.
 hierarchicalSpectralCluster :: EigenGroup
+                            -> Maybe NumEigen
                             -> Maybe Int
                             -> Maybe Q
                             -> Items a
                             -> AdjacencyMatrix
                             -> ClusteringTree a
-hierarchicalSpectralCluster !eigenGroup !minSizeMay !minModMay !items !adjMat =
+hierarchicalSpectralCluster !eigenGroup !numEigenMay !minSizeMay !minModMay !items !adjMat =
 
     if ngMod > minMod
         && S.rows adjMat > 1
@@ -60,8 +62,19 @@ hierarchicalSpectralCluster !eigenGroup !minSizeMay !minModMay !items !adjMat =
         && hasMultipleClusters clusters
         then do
             Node { rootLabel = vertex
-                 , subForest = [ hierarchicalSpectralCluster eigenGroup minSizeMay minModMay (getItems leftIdxs) left
-                               , hierarchicalSpectralCluster eigenGroup minSizeMay minModMay (getItems rightIdxs) right
+                 , subForest = [ hierarchicalSpectralCluster
+                                  eigenGroup
+                                  numEigenMay
+                                  minSizeMay
+                                  minModMay
+                                  (subsetVector items leftIdxs)
+                                  left
+                               , hierarchicalSpectralCluster
+                                  eigenGroup
+                                  numEigenMay
+                                  minSizeMay
+                                  minModMay (subsetVector items rightIdxs)
+                                  right
                                ]
                  }
         else
@@ -70,12 +83,13 @@ hierarchicalSpectralCluster !eigenGroup !minSizeMay !minModMay !items !adjMat =
     clusters = spectralClustering eigenGroup adjMat
     spectralClustering :: EigenGroup -> AdjacencyMatrix -> S.SparseMatrixXd
     spectralClustering SignGroup   = spectralClusterNorm
-    spectralClustering KMeansGroup = spectralClusterKNorm 2
+    spectralClustering KMeansGroup = spectralClusterKNorm numEigen 2
     minMod      = fromMaybe (Q 0) minModMay
     minSize     = fromMaybe 1 minSizeMay
+    numEigen    = fromMaybe 1 numEigenMay
     vertex      = ClusteringVertex { _clusteringItems = items
-                                 , _ngMod = ngMod
-                                 }
+                                   , _ngMod = ngMod
+                                   }
     ngMod       = getModularity clusters adjMat
     getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
                 . VS.fromList
@@ -85,10 +99,3 @@ hierarchicalSpectralCluster !eigenGroup !minSizeMay !minModMay !items !adjMat =
     rightIdxs   = getIdxs 1 clusters
     left        = S.squareSubset leftIdxs adjMat
     right       = S.squareSubset rightIdxs adjMat
-    getItems    =
-            V.fromList
-                . F.foldr' (\ !i !acc
-                           -> ( fromMaybe (error "Matrix has more rows than items.")
-                              $ items V.!? i
-                              ) : acc
-                           ) []

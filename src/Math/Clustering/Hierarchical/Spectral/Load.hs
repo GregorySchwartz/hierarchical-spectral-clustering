@@ -5,6 +5,7 @@ Collects the functions pertaining to loading a matrix.
 -}
 
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Math.Clustering.Hierarchical.Spectral.Load
     ( readDenseAdjMatrix
@@ -64,8 +65,9 @@ zeroDiag = filter (\((!i, !j), _) -> i /= j)
 
 -- | Get the translated matrix indices.
 getNewIndices
-    :: (Eq a, Ord a)
-    => [((a, a), Double)] -> [((Int, Int), Double)]
+    -- :: (Eq a, Ord a)
+    -- => [((a, a), Double)] -> [((Int, Int), Double)]
+    :: [((T.Text, T.Text), Double)] -> [((Int, Int), Double)]
 getNewIndices xs =
     fmap
         (\((!i,!j),!v) ->
@@ -103,12 +105,12 @@ readDenseAdjMatrix decodeOpt handle = flip with return $ do
 
     let items = V.fromList $ getAllIndices assocList
         mat   = H.assoc (V.length items, V.length items) 0
-                . Set.toList
-                . Set.fromList -- Ensure no duplicates.
-                . symmetric -- Ensure symmetry.
-                . zeroDiag -- Ensure zeros on diagonal.
-                . getNewIndices -- Only look at present rows by converting indices.
-                $ assocList
+              . Set.toList
+              . Set.fromList -- Ensure no duplicates.
+              . symmetric -- Ensure symmetry.
+              . zeroDiag -- Ensure zeros on diagonal.
+              . getNewIndices -- Only look at present rows by converting indices.
+              $ assocList
 
     return (items, mat)
 

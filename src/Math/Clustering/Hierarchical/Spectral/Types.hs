@@ -17,6 +17,7 @@ module Math.Clustering.Hierarchical.Spectral.Types
     , getClusterItemsDend
     , getClusterItemsTree
     , Q (..)
+    , NumEigen (..)
     ) where
 
 -- Remote
@@ -34,6 +35,7 @@ import qualified Data.Vector as V
 
 type Items a         = V.Vector a
 type ClusteringTree a = Tree (ClusteringVertex a)
+type NumEigen = Int
 
 data EigenGroup = SignGroup | KMeansGroup deriving (Read, Show, Generic)
 

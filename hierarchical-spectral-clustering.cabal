@@ -21,6 +21,9 @@ library
                      , Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix
                      , Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix
                      , Math.Clustering.Hierarchical.Spectral.Types
+                     , Math.Clustering.Hierarchical.Spectral.Utility
+                     , Math.Graph.Components
+                     , Math.Graph.Types
   other-modules:       Math.Clustering.Hierarchical.Spectral.Test
   build-depends:       base >= 4.7 && < 5
                      , aeson
@@ -30,6 +33,7 @@ library
                      , eigen-sparse-utils
                      , hierarchical-clustering
                      , hmatrix
+                     , fgl
                      , managed
                      , modularity
                      , mtl
@@ -57,10 +61,13 @@ executable cluster-tree
                      , bytestring
                      , cassava
                      , containers
+                     , filepath
                      , hmatrix
+                     , lens
                      , optparse-generic
                      , safe
                      , text
+                     , text-show
                      , vector
   default-language:    Haskell2010
 
