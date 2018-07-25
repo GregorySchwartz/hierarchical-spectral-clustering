@@ -137,8 +137,6 @@ main = do
                     if separateComponents'
                         then Multiple
                            . fmap (uncurry cluster)
-                           . (:[])
-                           . (!! 318)
                            . getComponentMatsItems items
                            $ mat
                         else Single $ cluster items mat
