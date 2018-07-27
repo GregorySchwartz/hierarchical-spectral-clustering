@@ -24,7 +24,6 @@ import Safe (headMay)
 import qualified Data.Foldable as F
 import qualified Data.Set as Set
 import qualified Data.Eigen.SparseMatrix as S
-import qualified Data.Eigen.SparseMatrix.Utility as S
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 

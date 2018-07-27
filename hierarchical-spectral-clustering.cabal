@@ -30,7 +30,6 @@ library
                      , cassava
                      , containers
                      , eigen
-                     , eigen-sparse-utils
                      , hierarchical-clustering
                      , hmatrix
                      , fgl

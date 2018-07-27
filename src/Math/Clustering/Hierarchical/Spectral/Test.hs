@@ -17,7 +17,6 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Sparse.Common as S
 import qualified Data.Eigen.SparseMatrix as E
-import qualified Data.Eigen.SparseMatrix.Utility as E
 import qualified Data.Vector as V
 import qualified Math.Clustering.Spectral.Eigen.FeatureMatrix as EF
 import qualified Numeric.LinearAlgebra as H
