@@ -43,7 +43,7 @@ extra-deps:
 - /home/gw/code/utility/spectral-clustering/
 - /home/gw/code/utility/modularity/
 - eigen-3.3.4.1
-- hmatrix-svdlibc-0.5.0
+- hmatrix-svdlibc-0.5.0.1
 - streaming-cassava-0.1.0.1
 - streaming-with-0.2.0.0
 - exceptions-0.8.3
