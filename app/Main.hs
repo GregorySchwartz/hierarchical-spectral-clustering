@@ -24,6 +24,7 @@ import Data.Monoid ((<>))
 import Options.Generic
 import Safe (atMay)
 import System.IO (stdin)
+import Text.Read (readMaybe)
 import TextShow (showt)
 import qualified Control.Lens as L
 import qualified Data.Aeson as A
@@ -101,15 +102,22 @@ main = do
                       \ adjacency matrix.\
                       \ Format is row,column,value with no header."
 
-    let clusteringType'     =
-            maybe Sparse read . unHelpful . clusteringType $ opts
+    let readOrErr err       = fromMaybe (error err) . readMaybe
+        clusteringType'     =
+          maybe Sparse (readOrErr "Cannot read --clustering-type")
+            . unHelpful
+            . clusteringType
+            $ opts
         delim'              =
             Delimiter . fromMaybe ',' . unHelpful . delimiter $ opts
         minSize'            = fmap MinSize . unHelpful . minSize $ opts
         numEigen'           = fmap NumEigen . unHelpful . numEigen $ opts
         minModularity'      = fmap Q . unHelpful . minModularity $ opts
         eigenGroup'         =
-            maybe SignGroup read . unHelpful . eigenGroup $ opts
+          maybe SignGroup (readOrErr "Cannot read --eigen-group")
+            . unHelpful
+            . eigenGroup
+            $ opts
         separateComponents' = unHelpful . separateComponents $ opts
         outputTree'         = fmap OutputTree . unHelpful . outputTree $ opts
         decodeOpt       = CSV.defaultDecodeOptions
