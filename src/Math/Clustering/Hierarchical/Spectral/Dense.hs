@@ -40,7 +40,7 @@ hasMultipleClusters = (> 1) . Set.size . Set.fromList . H.toList
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can also use minimum number
 -- of observations in a cluster as the stopping criteria.
-hierarchicalSpectralCluster :: EigenGroup
+hierarchicalSpectralCluster :: (Show a) => EigenGroup
                             -> Maybe NumEigen
                             -> Maybe Int
                             -> Maybe Q
@@ -48,11 +48,11 @@ hierarchicalSpectralCluster :: EigenGroup
                             -> AdjacencyMatrix
                             -> ClusteringTree a
 hierarchicalSpectralCluster !eigenGroup !numEigenMay !minSizeMay !minModMay !items !adjMat =
-    if ngMod > minMod
-        && H.rows adjMat > 1
+    if H.rows adjMat > 1
+        && hasMultipleClusters clusters
+        && ngMod > minMod
         && H.rows left >= minSize
         && H.rows right >= minSize
-        && hasMultipleClusters clusters
         then
             Node { rootLabel = vertex
                  , subForest =

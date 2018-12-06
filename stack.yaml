@@ -42,6 +42,7 @@ packages:
 extra-deps:
 - /home/gw/code/utility/spectral-clustering/
 - /home/gw/code/utility/modularity/
+- clustering-0.4.0
 - eigen-3.3.4.1
 - hmatrix-svdlibc-0.5.0.1
 - streaming-cassava-0.1.0.1

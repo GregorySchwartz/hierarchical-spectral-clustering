@@ -28,6 +28,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , cassava
+                     , clustering
                      , containers
                      , eigen
                      , hierarchical-clustering

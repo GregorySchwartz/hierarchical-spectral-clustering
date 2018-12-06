@@ -54,11 +54,11 @@ hierarchicalSpectralCluster :: EigenGroup
                             -> ClusteringTree a
 hierarchicalSpectralCluster !eigenGroup !numEigenMay !minSizeMay !minModMay !items !adjMat =
 
-    if ngMod > minMod
-        && S.rows adjMat > 1
+    if S.rows adjMat > 1
+        && hasMultipleClusters clusters
+        && ngMod > minMod
         && S.rows left >= minSize
         && S.rows right >= minSize
-        && hasMultipleClusters clusters
         then do
             Node { rootLabel = vertex
                  , subForest = [ hierarchicalSpectralCluster

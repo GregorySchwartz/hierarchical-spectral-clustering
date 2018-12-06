@@ -67,11 +67,11 @@ hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay
     numEigen = fromMaybe 1 numEigenMay
     go :: Items a -> B -> ClusteringTree a
     go !items !b =
-        if ngMod > minMod
-            && (S.nrows $ unB b) > 1
+        if (S.nrows $ unB b) > 1
+            && hasMultipleClusters clusters
+            && ngMod > minMod
             && S.nrows (unB left) >= minSize
             && S.nrows (unB right) >= minSize
-            && hasMultipleClusters clusters
             then
                 Node { rootLabel = vertex
                      , subForest = [ go (subsetVector items leftIdxs) left
@@ -106,7 +106,9 @@ hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay
         right :: B
         right       = B $ extractRows (unB b) rightIdxs
         extractRows :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
-        extractRows mat = S.transposeSM . S.fromColsL . fmap (S.extractRow mat)
+        extractRows mat [] = S.zeroSM 0 0
+        extractRows mat xs =
+          S.transposeSM . S.fromColsL . fmap (S.extractRow mat) $ xs
 
 -- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can use minimum number of
@@ -127,11 +129,11 @@ hierarchicalSpectralClusterAdj eigenGroup numEigenMay minSizeMay minModMay initI
     numEigen    = fromMaybe 1 numEigenMay
     go :: Items a -> AdjacencyMatrix -> ClusteringTree a
     go !items !mat =
-        if ngMod > minMod
-            && (S.nrows $ mat) > 1
-            && S.nrows mat >= minSize
-            && S.nrows mat >= minSize
+        if S.nrows mat > 1
             && hasMultipleClusters clusters
+            && ngMod > minMod
+            && S.nrows left >= minSize
+            && S.nrows right >= minSize
             then
                 Node { rootLabel = vertex
                      , subForest = [ go (subsetVector items leftIdxs) left
@@ -158,14 +160,15 @@ hierarchicalSpectralClusterAdj eigenGroup numEigenMay minSizeMay minModMay initI
                           . VS.fromList
                           . S.toDenseListSV
         leftIdxs :: [Int]
-        leftIdxs    = getSortedIdxs 0 $ clusters
+        leftIdxs    = getSortedIdxs 0 clusters
         rightIdxs :: [Int]
-        rightIdxs   = getSortedIdxs 1 $ clusters
+        rightIdxs   = getSortedIdxs 1 clusters
         left :: AdjacencyMatrix
         left        = getSubMat mat leftIdxs
         right :: AdjacencyMatrix
         right       = getSubMat mat rightIdxs
         getSubMat :: S.SpMatrix Double -> [Int] -> S.SpMatrix Double
+        getSubMat mat [] = S.zeroSM 0 0
         getSubMat mat is = S.fromColsL
                          . (\x -> fmap (S.extractCol x) is)
                          . S.transposeSM

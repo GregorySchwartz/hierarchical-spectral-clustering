@@ -72,7 +72,7 @@ data Options = Options { clusteringType :: Maybe String
                        , minSize        :: Maybe Int
                                        <?> "([Nothing] | INT) Minimum size of a cluster."
                        , numEigen       :: Maybe Int
-                                       <?> "([1] | INT) Number of eigenvectors to use while clustering with kmeans. Takes from the second to last eigenvector. Recommended to start at 1 and work up from there if needed."
+                                       <?> "([1] | INT) Number of eigenvectors to use while clustering with kmeans. Takes from the first eigenvector. Recommended to start at 2 and work up from there if needed."
                        , minModularity  :: Maybe Double
                                        <?> "([0] | DOUBLE) Minimum modularity to be over to continue recursion."
                        , eigenGroup     :: Maybe String
@@ -100,7 +100,8 @@ main = do
                       \ symmetric part of matrix, so ensure the input is real\
                       \ and symmetric. Diagonal should be 0s for\
                       \ adjacency matrix.\
-                      \ Format is row,column,value with no header."
+                      \ Format is row,column,value with no header.\
+                      \ Must end with a newline."
 
     let readOrErr err       = fromMaybe (error err) . readMaybe
         clusteringType'     =

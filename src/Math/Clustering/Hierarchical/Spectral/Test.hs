@@ -92,7 +92,7 @@ clusterExample = hierarchicalSpectralCluster
 clusterKExample = hierarchicalSpectralCluster
                     KMeansGroup
                     True
-                    Nothing
+                    (Just 2)
                     Nothing
                     Nothing
                     exampleItems
@@ -108,7 +108,7 @@ clusterAdjExample = hierarchicalSpectralClusterAdj
 
 clusterKAdjExample = hierarchicalSpectralClusterAdj
                         KMeansGroup
-                        Nothing
+                        (Just 2)
                         Nothing
                         Nothing
                         exampleItems
@@ -135,7 +135,7 @@ denseClusterExample = Dense.hierarchicalSpectralCluster
 
 denseClusterKExample = Dense.hierarchicalSpectralCluster
                         KMeansGroup
-                        Nothing
+                        (Just 2)
                         Nothing
                         Nothing
                         exampleItems
@@ -165,7 +165,7 @@ clusterEigenExample = EF.hierarchicalSpectralCluster
 clusterKEigenExample = EF.hierarchicalSpectralCluster
                         KMeansGroup
                         True
-                        Nothing
+                        (Just 2)
                         Nothing
                         Nothing
                         exampleItems
@@ -181,7 +181,7 @@ clusterAdjEigenExample = EA.hierarchicalSpectralCluster
 
 clusterKAdjEigenExample = EA.hierarchicalSpectralCluster
                         KMeansGroup
-                        Nothing
+                        (Just 2)
                         Nothing
                         Nothing
                         exampleItems

@@ -69,11 +69,11 @@ hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay
     numEigen    = fromMaybe 1 numEigenMay
     go :: Items a -> B -> ClusteringTree a
     go !items !b =
-        if ngMod > minMod
-            && (S.rows $ unB b) > 1
+        if (S.rows $ unB b) > 1
+            && hasMultipleClusters clusters
+            && ngMod > minMod
             && S.rows (unB left) >= minSize
             && S.rows (unB right) >= minSize
-            && hasMultipleClusters clusters
             then
                 Node { rootLabel = vertex
                      , subForest = [ go (subsetVector items leftIdxs) left
@@ -109,4 +109,5 @@ hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay
         right :: B
         right       = B $ extractRows (unB b) rightIdxs
         extractRows :: S.SparseMatrixXd -> [Int] -> S.SparseMatrixXd
-        extractRows mat = S.fromRows . fmap (flip S.getRow mat)
+        extractRows mat [] = S.fromList 0 0 []
+        extractRows mat xs = S.fromRows . fmap (flip S.getRow mat) $ xs
