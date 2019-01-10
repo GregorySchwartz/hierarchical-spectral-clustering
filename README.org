@@ -1,0 +1,101 @@
+#+TITLE: hierarchical-spectral-clustering
+#+AUTHOR: Gregory W. Schwartz
+
+* Description
+
+=hierarchical-spectral-clustering= is a program (=cluster-tree=) and library for
+hierarchical spectral clustering of sparse and dense matrices. Outputted =JSON=
+trees can be used with [[=birch-beer=][http://github.com/GregorySchwartz/birch-beer#readme]] for
+pretty trees!
+
+* Example usage
+
+We first need our data in the format of "vertex,vertex,value", such that a
+vertex "x" connects with vertex "y" with an edge weight of value. This edge list
+can be used as input into the program. *Make sure there is a newline at the
+end*, otherwise, the program may expect more from =stdin=.
+
+#+NAME: exampleEdgeList
+#+BEGIN_EXAMPLE
+a,b,1
+a,c,2
+a,d,4.5
+b,d,2.1
+c,d,1.1
+e,f,1
+#+END_EXAMPLE
+
+Then we can give this file to the program:
+
+#+HEADER: :var input=exampleEdgeList
+#+BEGIN_SRC sh
+cat input.csv | cluster-tree --clustering-type Dense
+#+END_SRC
+
+#+RESULTS:
+| item | cluster |
+| a    |       1 |
+| b    |       1 |
+| c    |       1 |
+| d    |       1 |
+| e    |       2 |
+| f    |       2 |
+
+As a more advanced example, we can get:
+
+- Output clustering
+- Output tree structure in =JSON= format.
+- First isolate each connected component before clustering and generating their
+  own trees.
+- Use k-means instead of sign on the eigenvectors to determine cluster assignment.
+- Use k-means on two eigenvector rather than one.
+
+#+BEGIN_SRC sh
+cat advanced_input.csv | cluster-tree --output-tree "output_trees/tree.json" --clustering-type Dense --eigen-group KMeansGroup --num-eigen 2 --separate-components > "clusters.csv"
+#+END_SRC
+
+* Documentation
+
+#+HEADER: :results verbatim
+#+BEGIN_SRC sh
+cluster-tree -h
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+cluster-tree, Gregory W. Schwartz. Hierarchical spectral clustering of data
+Computes real symmetric part of matrix, so ensure the input is real and
+symmetric. Diagonal should be 0s for adjacency matrix. Format is
+row,column,value with no header. Must end with a newline.
+
+Usage: cluster-tree [-c|--clustering-type STRING] [-d|--delimiter CHAR]
+                    [-S|--min-size INT] [-n|--num-eigen INT]
+                    [-m|--min-modularity DOUBLE] [-e|--eigen-group STRING]
+                    [-s|--separate-components] [-o|--output-tree STRING]
+
+Available options:
+  -h,--help                Show this help text
+  -c,--clustering-type STRING
+                           ([Sparse] | Dense) Method for clustering data.
+  -d,--delimiter CHAR      ([,] | CHAR) The delimiter of the CSV file. Format is
+                           row,column,value with no header.
+  -S,--min-size INT        ([Nothing] | INT) Minimum size of a cluster.
+  -n,--num-eigen INT       ([1] | INT) Number of eigenvectors to use while
+                           clustering with kmeans. Takes from the first
+                           eigenvector. Recommended to start at 2 and work up
+                           from there if needed.
+  -m,--min-modularity DOUBLE
+                           ([0] | DOUBLE) Minimum modularity to be over to
+                           continue recursion.
+  -e,--eigen-group STRING  ([SignGroup] | KMeansGroup) Whether to group the
+                           eigenvector using the sign or kmeans while
+                           clustering. While the default is sign, kmeans may be
+                           more accurate (but starting points are arbitrary).
+  -s,--separate-components Whether to first separate connected components of the
+                           graph first. Will output a dendrogram for each
+                           component with the name of the tree and the number of
+                           nodes within the tree, along with the base set by
+                           --output-tree.
+  -o,--output-tree STRING  ([Nothing] | FILE) The name of the file to output the
+                           tree in JSON format.
+#+end_example
