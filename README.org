@@ -23,11 +23,19 @@ stack setup
 
 ** Install =hierarchical-spectral-clustering=
 
+*** Source
+
+#+BEGIN_SRC sh
+git clone https://github.com/GregorySchwartz/hierarchical-spectral-clustering.git
+cd hierarchical-spectral-clustering
+stack install
+#+END_SRC
+
 *** Online
 
 We only require =stack= (or =cabal=), you do not need to download any source
-code, just run the following command to place =cluster-tree= in your
-=~/.local/bin/=:
+code (but you might need the stack.yaml dependency versions), just run the
+following command to place =cluster-tree= in your =~/.local/bin/=:
 
 #+BEGIN_SRC sh
 stack install hierarchical-spectral-clustering
@@ -39,12 +47,6 @@ just need to follow the suggestion and add the dependencies to the specified
 file. For a quick =yaml= configuration, refer to
 [[https://github.com/GregorySchwartz/hierarchical-spectral-clustering/blob/master/stack.yaml]].
 Relies on =eigen-3.3.4.1= right now.
-
-*** Source
-
-#+BEGIN_SRC sh
-stack install
-#+END_SRC
 
 * Example usage
 
