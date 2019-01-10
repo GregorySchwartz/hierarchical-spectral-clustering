@@ -48,7 +48,7 @@ As a more advanced example, we can get:
 - First isolate each connected component before clustering and generating their
   own trees.
 - Use k-means instead of sign on the eigenvectors to determine cluster assignment.
-- Use k-means on two eigenvector rather than one.
+- Use k-means on two eigenvectors rather than one.
 
 #+BEGIN_SRC sh
 cat advanced_input.csv | cluster-tree --output-tree "output_trees/tree.json" --clustering-type Dense --eigen-group KMeansGroup --num-eigen 2 --separate-components > "clusters.csv"
