@@ -47,8 +47,8 @@ extra-deps:
 - streaming-with-0.2.0.0
 - exceptions-0.8.3
 - temporary-1.2.1.1
-- modularity-0.2.0.2
-- spectral-clustering-0.2.1.1
+- modularity-0.2.0.3
+- spectral-clustering-0.2.1.2
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
