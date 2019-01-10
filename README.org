@@ -1,12 +1,14 @@
 #+TITLE: hierarchical-spectral-clustering
 #+AUTHOR: Gregory W. Schwartz
 
+See [[https://github.com/GregorySchwartz/hierarchical-spectral-clustering]] for
+latest version.
+
 * Description
 
 =hierarchical-spectral-clustering= is a program (=cluster-tree=) and library for
 hierarchical spectral clustering of sparse and dense matrices. Outputted =JSON=
-trees can be used with [[=birch-beer=][http://github.com/GregorySchwartz/birch-beer#readme]] for
-pretty trees!
+trees can be used with [[http://github.com/GregorySchwartz/birch-beer#readme][=birch-beer=]] for pretty trees!
 
 * Example usage
 
