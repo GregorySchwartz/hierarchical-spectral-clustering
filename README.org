@@ -36,7 +36,9 @@ stack install hierarchical-spectral-clustering
 If you run into errors like =Error: While constructing the build plan, the
 following exceptions were encountered:=, then follow it's advice. Usually you
 just need to follow the suggestion and add the dependencies to the specified
-file. Relies on =eigen-3.3.4.1= right now.
+file. For a quick =yaml= configuration, refer to
+[[https://github.com/GregorySchwartz/hierarchical-spectral-clustering/blob/master/stack.yaml]].
+Relies on =eigen-3.3.4.1= right now.
 
 *** Source
 
@@ -64,6 +66,7 @@ e,f,1
 Then we can give this file to the program:
 
 #+HEADER: :exports both
+#+HEADER: :results verbatim
 #+HEADER: :var input=exampleEdgeList
 #+BEGIN_SRC sh
 cat input.csv | cluster-tree --clustering-type Dense
