@@ -30,7 +30,7 @@ library
                      , cassava
                      , clustering
                      , containers
-                     , eigen
+                     , eigen == 3.3.4.1
                      , hierarchical-clustering
                      , hmatrix
                      , fgl
