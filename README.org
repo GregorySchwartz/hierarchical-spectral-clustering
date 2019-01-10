@@ -25,6 +25,8 @@ stack setup
 
 *** Source
 
+Probably easiest if you don't want to mess with dependencies:
+
 #+BEGIN_SRC sh
 git clone https://github.com/GregorySchwartz/hierarchical-spectral-clustering.git
 cd hierarchical-spectral-clustering
