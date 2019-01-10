@@ -8,7 +8,7 @@ latest version.
 
 =hierarchical-spectral-clustering= is a program (=cluster-tree=) and library for
 hierarchical spectral clustering of sparse and dense matrices. Outputted =JSON=
-trees can be used with [[http://github.com/GregorySchwartz/birch-beer#readme][=birch-beer=]] for pretty trees!
+trees can be used with [[http://github.com/GregorySchwartz/birch-beer#readme][birch-beer]] for pretty trees!
 
 * Installation
 
@@ -64,6 +64,7 @@ e,f,1
 Then we can give this file to the program:
 
 #+HEADER: :var input=exampleEdgeList
+#+HEADER: :exports both
 #+BEGIN_SRC sh
 cat input.csv | cluster-tree --clustering-type Dense
 #+END_SRC
@@ -97,7 +98,6 @@ cat advanced_input.csv | cluster-tree --output-tree "output_trees/tree.json" --c
 cluster-tree -h
 #+END_SRC
 
-#+RESULTS:
 #+begin_example
 cluster-tree, Gregory W. Schwartz. Hierarchical spectral clustering of data
 Computes real symmetric part of matrix, so ensure the input is real and
