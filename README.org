@@ -10,6 +10,40 @@ latest version.
 hierarchical spectral clustering of sparse and dense matrices. Outputted =JSON=
 trees can be used with [[http://github.com/GregorySchwartz/birch-beer#readme][=birch-beer=]] for pretty trees!
 
+* Installation
+
+** Install =stack=
+
+See [[https://docs.haskellstack.org/en/stable/README/]] for more details.
+
+#+BEGIN_SRC sh
+curl -sSL https://get.haskellstack.org/ | sh
+stack setup
+#+END_SRC
+
+** Install =hierarchical-spectral-clustering=
+
+*** Online
+
+We only require =stack= (or =cabal=), you do not need to download any source
+code, just run the following command to place =cluster-tree= in your
+=~/.local/bin/=:
+
+#+BEGIN_SRC sh
+stack install hierarchical-spectral-clustering
+#+END_SRC
+
+If you run into errors like =Error: While constructing the build plan, the
+following exceptions were encountered:=, then follow it's advice. Usually you
+just need to follow the suggestion and add the dependencies to the specified
+file. Relies on =eigen-3.3.4.1= right now.
+
+*** Source
+
+#+BEGIN_SRC sh
+stack install
+#+END_SRC
+
 * Example usage
 
 We first need our data in the format of "vertex,vertex,value", such that a
