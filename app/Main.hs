@@ -135,7 +135,7 @@ main = do
             Dense -> do
                 (items, mat) <- readDenseAdjMatrix decodeOpt stdin
 
-                let cluster items = HD.hierarchicalSpectralCluster
+                let cluster items = HD.hierarchicalSpectralClusterAdj
                                       eigenGroup'
                                       (fmap unNumEigen numEigen')
                                       (fmap unMinSize minSize')

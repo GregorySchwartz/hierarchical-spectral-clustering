@@ -8,8 +8,11 @@ Collects the functions pertaining to hierarchical spectral clustering.
 
 module Math.Clustering.Hierarchical.Spectral.Dense
     ( hierarchicalSpectralCluster
-    , AdjacencyMatrix (..)
+    , hierarchicalSpectralClusterAdj
+    , FeatureMatrix (..)
+    , B (..)
     , Items (..)
+    , ShowB (..)
     ) where
 
 -- Remote
@@ -17,8 +20,8 @@ import Data.Bool (bool)
 import Data.Clustering.Hierarchical (Dendrogram (..))
 import Data.Maybe (fromMaybe)
 import Data.Tree (Tree (..))
-import Math.Clustering.Spectral.Dense (spectralClusterNorm, spectralClusterKNorm)
-import Math.Modularity.Dense (getModularity)
+import Math.Clustering.Spectral.Dense (B (..), AdjacencyMatrix (..), getB, spectralCluster, spectralClusterK, spectralClusterNorm, spectralClusterKNorm)
+import Math.Modularity.Dense (getModularity, getBModularity)
 import Math.Modularity.Types (Q (..))
 import qualified Data.Foldable as F
 import qualified Data.Set as Set
@@ -30,24 +33,81 @@ import qualified Numeric.LinearAlgebra as H
 import Math.Clustering.Hierarchical.Spectral.Types
 import Math.Clustering.Hierarchical.Spectral.Utility
 
-type AdjacencyMatrix = H.Matrix Double
+type FeatureMatrix   = H.Matrix Double
 type Items a         = V.Vector a
+type ShowB           = ((Int, Int), [(Int, Int, Double)])
+type NormalizeFlag   = Bool
 
 -- | Check if there is more than one cluster.
 hasMultipleClusters :: H.Vector Double -> Bool
 hasMultipleClusters = (> 1) . Set.size . Set.fromList . H.toList
 
 -- | Generates a tree through divisive hierarchical clustering using
+-- Newman-Girvan modularity as a stopping criteria. Can use minimum number of
+-- observations in a cluster as a stopping criteria. Assumes the feature matrix
+-- has column features and row observations. Items correspond to rows. Can
+-- use FeatureMatrix or a pre-generated B matrix. See Shu et al., "Efficient
+-- Spectral Neighborhood Blocking for Entity Resolution", 2011.
+hierarchicalSpectralCluster :: EigenGroup
+                            -> NormalizeFlag
+                            -> Maybe NumEigen
+                            -> Maybe Int
+                            -> Maybe Q
+                            -> Items a
+                            -> Either FeatureMatrix B
+                            -> ClusteringTree a
+hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay initItems initMat =
+    go initItems initB
+  where
+    initB = either (getB normFlag) id $ initMat
+    minMod   = fromMaybe (Q 0) minModMay
+    minSize  = fromMaybe 1 minSizeMay
+    numEigen = fromMaybe 1 numEigenMay
+    go :: Items a -> B -> ClusteringTree a
+    go !items !b =
+        if (H.rows $ unB b) > 1
+            && hasMultipleClusters clusters
+            && ngMod > minMod
+            && H.rows (unB left) >= minSize
+            && H.rows (unB right) >= minSize
+            then
+                Node { rootLabel = vertex
+                     , subForest = [ go (subsetVector items leftIdxs) left
+                                   , go (subsetVector items rightIdxs) right
+                                   ]
+                     }
+
+            else
+                Node {rootLabel = vertex, subForest = []}
+      where
+        vertex      = ClusteringVertex
+                        { _clusteringItems = items
+                        , _ngMod = ngMod
+                        }
+        clusters :: H.Vector Double
+        clusters = spectralClustering eigenGroup b
+        spectralClustering :: EigenGroup -> B -> H.Vector Double
+        spectralClustering SignGroup   = spectralCluster
+        spectralClustering KMeansGroup = spectralClusterK numEigen 2
+        ngMod :: Q
+        ngMod       = getBModularity clusters $ b
+        getIdxs val = VS.ifoldr' (\ !i !v !acc -> bool acc (i:acc) $ v == val) []
+        leftIdxs    = getIdxs 0 $ clusters
+        rightIdxs   = getIdxs 1 $ clusters
+        left        = B $ (unB b) H.? leftIdxs
+        right       = B $ (unB b) H.? rightIdxs
+
+-- | Generates a tree through divisive hierarchical clustering using
 -- Newman-Girvan modularity as a stopping criteria. Can also use minimum number
 -- of observations in a cluster as the stopping criteria.
-hierarchicalSpectralCluster :: (Show a) => EigenGroup
+hierarchicalSpectralClusterAdj :: (Show a) => EigenGroup
                             -> Maybe NumEigen
                             -> Maybe Int
                             -> Maybe Q
                             -> Items a
                             -> AdjacencyMatrix
                             -> ClusteringTree a
-hierarchicalSpectralCluster !eigenGroup !numEigenMay !minSizeMay !minModMay !items !adjMat =
+hierarchicalSpectralClusterAdj !eigenGroup !numEigenMay !minSizeMay !minModMay !items !adjMat =
     if H.rows adjMat > 1
         && hasMultipleClusters clusters
         && ngMod > minMod
@@ -56,14 +116,14 @@ hierarchicalSpectralCluster !eigenGroup !numEigenMay !minSizeMay !minModMay !ite
         then
             Node { rootLabel = vertex
                  , subForest =
-                    [ hierarchicalSpectralCluster
+                    [ hierarchicalSpectralClusterAdj
                         eigenGroup
                         numEigenMay
                         minSizeMay
                         minModMay
                         (subsetVector items leftIdxs)
                         left
-                    , hierarchicalSpectralCluster
+                    , hierarchicalSpectralClusterAdj
                         eigenGroup
                         numEigenMay
                         minSizeMay

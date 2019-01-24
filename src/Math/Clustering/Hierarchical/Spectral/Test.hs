@@ -125,21 +125,45 @@ denseAdjacencyExample = H.assoc (S.dimSM adjacencyExample) 0
                       . S.toListSM
                       $ adjacencyExample
 
+denseFeatureExample :: H.Matrix Double
+denseFeatureExample = H.assoc (S.dimSM (exampleMatrix 3 exampleData)) 0
+                    . fmap (\(!x, !y, !z) -> ((x, y), z))
+                    . S.toListSM
+                    $ exampleMatrix 3 exampleData
+
+denseClusterAdjExample = Dense.hierarchicalSpectralClusterAdj
+                          SignGroup
+                          Nothing
+                          Nothing
+                          Nothing
+                          exampleItems
+                          denseAdjacencyExample
+
+denseClusterAdjKExample = Dense.hierarchicalSpectralClusterAdj
+                          KMeansGroup
+                          (Just 2)
+                          Nothing
+                          Nothing
+                          exampleItems
+                          denseAdjacencyExample
+
 denseClusterExample = Dense.hierarchicalSpectralCluster
                         SignGroup
+                        True
                         Nothing
                         Nothing
                         Nothing
                         exampleItems
-                        denseAdjacencyExample
+                        (Left denseFeatureExample)
 
 denseClusterKExample = Dense.hierarchicalSpectralCluster
                         KMeansGroup
+                        True
                         (Just 2)
                         Nothing
                         Nothing
                         exampleItems
-                        denseAdjacencyExample
+                        (Left denseFeatureExample)
 
 -- | Generate the matrix of qgrams from a list of records and qgram length.
 exampleEigenMatrix :: Int -> [String] -> E.SparseMatrixXd
