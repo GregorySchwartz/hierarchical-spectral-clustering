@@ -100,7 +100,7 @@ main = do
                       \ symmetric part of matrix, so ensure the input is real\
                       \ and symmetric. Diagonal should be 0s for\
                       \ adjacency matrix.\
-                      \ Format is row,column,value with no header.\
+                      \ Format is an edge list of node1,node2,value with no header, fed in through STDIN.\
                       \ Must end with a newline."
 
     let readOrErr err       = fromMaybe (error err) . readMaybe
