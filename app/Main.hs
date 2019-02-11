@@ -21,6 +21,7 @@ import GHC.Generics
 import Data.Char (ord)
 import Data.List (intercalate)
 import Data.Monoid ((<>))
+import Math.Graph.Types
 import Options.Generic
 import Safe (atMay)
 import System.IO (stdin)
@@ -37,7 +38,6 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as H
 import qualified System.FilePath as File
-import Math.Graph.Types
 
 -- Local
 import Math.Clustering.Hierarchical.Spectral.Load
@@ -66,7 +66,7 @@ instance (A.FromJSON a) => A.FromJSON (ClusteringVertex a)
 
 -- | Command line arguments
 data Options = Options { clusteringType :: Maybe String
-                                       <?> "([Sparse] | Dense) Method for clustering data."
+                                       <?> "([Dense] | Sparse) Method for clustering data."
                        , delimiter      :: Maybe Char
                                        <?> "([,] | CHAR) The delimiter of the CSV file. Format is row,column,value with no header."
                        , minSize        :: Maybe Int
@@ -105,7 +105,7 @@ main = do
 
     let readOrErr err       = fromMaybe (error err) . readMaybe
         clusteringType'     =
-          maybe Sparse (readOrErr "Cannot read --clustering-type")
+          maybe Dense (readOrErr "Cannot read --clustering-type")
             . unHelpful
             . clusteringType
             $ opts
