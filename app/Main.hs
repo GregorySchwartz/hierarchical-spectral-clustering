@@ -24,6 +24,7 @@ import Data.Monoid ((<>))
 import Math.Graph.Types
 import Options.Generic
 import Safe (atMay)
+import System.Directory (createDirectoryIfMissing)
 import System.IO (stdin)
 import Text.Read (readMaybe)
 import TextShow (showt)
@@ -129,6 +130,11 @@ main = do
                             { CSV.encDelimiter =
                                 fromIntegral (ord . unDelimiter $ delim')
                             }
+
+    -- Make output directory
+    mapM_
+      (createDirectoryIfMissing True . File.takeDirectory . unOutputTree)
+      outputTree'
 
     clusteringTree <-
         case clusteringType' of

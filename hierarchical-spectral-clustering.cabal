@@ -1,5 +1,5 @@
 name:                hierarchical-spectral-clustering
-version:             0.3.0.0
+version:             0.3.0.1
 synopsis:            Hierarchical spectral clustering of a graph.
 description:         Generate a tree of hierarchical spectral clustering using Newman-Girvan modularity as a stopping criteria.
 homepage:            http://github.com/GregorySchwartz/hierarchical-spectral-clustering#readme
@@ -61,6 +61,7 @@ executable cluster-tree
                      , bytestring
                      , cassava
                      , containers
+                     , directory
                      , filepath
                      , hmatrix
                      , lens
