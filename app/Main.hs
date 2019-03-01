@@ -54,8 +54,9 @@ newtype OutputTree = OutputTree { unOutputTree :: String } deriving (Read, Show)
 newtype MinSize    = MinSize { unMinSize :: Int } deriving (Read, Show)
 newtype NumEigen   = NumEigen { unNumEigen :: Int } deriving (Read, Show)
 
-data ClusteringType = Sparse | Dense deriving (Read, Show)
-data Components a = Single (ClusteringTree a) | Multiple [ClusteringTree a]
+data ClusteringType = Sparse | Dense | Premade String deriving (Read, Show)
+data Components a = Single (GenericClusteringTree a)
+                  | Multiple [GenericClusteringTree a]
 
 instance A.ToJSON Q where
       toEncoding = A.genericToEncoding A.defaultOptions
@@ -67,7 +68,7 @@ instance (A.FromJSON a) => A.FromJSON (ClusteringVertex a)
 
 -- | Command line arguments
 data Options = Options { clusteringType :: Maybe String
-                                       <?> "([Dense] | Sparse) Method for clustering data."
+                                       <?> "([Dense] | Sparse | Premade FILE) Method for clustering data. Premade points to a JSON containing the already made tree to output the leaves as clusters."
                        , delimiter      :: Maybe Char
                                        <?> "([,] | CHAR) The delimiter of the CSV file. Format is row,column,value with no header."
                        , minSize        :: Maybe Int
@@ -141,7 +142,8 @@ main = do
             Dense -> do
                 (items, mat) <- readDenseAdjMatrix decodeOpt stdin
 
-                let cluster items = HD.hierarchicalSpectralClusterAdj
+                let cluster items = clusteringTreeToGenericClusteringTree
+                                  . HD.hierarchicalSpectralClusterAdj
                                       eigenGroup'
                                       (fmap unNumEigen numEigen')
                                       (fmap unMinSize minSize')
@@ -158,7 +160,8 @@ main = do
             Sparse -> do
                 (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
 
-                let cluster items = HS.hierarchicalSpectralCluster
+                let cluster items = clusteringTreeToGenericClusteringTree
+                                  . HS.hierarchicalSpectralCluster
                                       eigenGroup'
                                       (fmap unNumEigen numEigen')
                                       (fmap unMinSize minSize')
@@ -173,9 +176,12 @@ main = do
                            $ mat
                         else Single $ cluster items mat
 
+            (Premade file) ->
+                fmap (either error Single . A.eitherDecode) . B.readFile $ file
+
     body <- case clusteringTree of
         (Single ct) -> do
-            let clustering = zip ([1..] :: [Int]) . getClusterItemsTree $ ct
+            let clustering = zip ([1..] :: [Int]) . getClusterItemsGenericTree $ ct
                 body :: [(T.Text, T.Text)]
                 body = concatMap
                         (\(!c, xs) -> fmap (\ !x -> (x, showt c)) . V.toList $ xs)
@@ -185,13 +191,12 @@ main = do
                 Nothing                -> return ()
                 Just (OutputTree file) -> B.writeFile file
                                         . A.encodePretty
-                                        . clusteringTreeToDendrogram
                                         $ ct
 
             return body
         (Multiple cts) -> do
             let clustering =
-                    fmap (L.over L._2 (zip ([1..] :: [Int]) . getClusterItemsTree))
+                    fmap (L.over L._2 (zip ([1..] :: [Int]) . getClusterItemsGenericTree))
                         . zip ([1..] :: [Int])
                         $ cts
                 body :: [(T.Text, T.Text)]
@@ -209,19 +214,18 @@ main = do
             case outputTree' of
                 Nothing                -> return ()
                 Just (OutputTree file) -> do
-                    let getSize :: ClusteringTree a -> Int
-                        getSize = sum . fmap V.length . getClusterItemsTree
+                    let getSize :: GenericClusteringTree a -> Int
+                        getSize = sum . fmap V.length . getClusterItemsGenericTree
                         getFileName :: Int -> Int -> String
                         getFileName t n =
                             uncurry (File.</>)
                                 . L.over L._2 (\x -> intercalate "_" ["tree", show t, "size", show n, x])
                                 . File.splitFileName
                                 $ file
-                        write :: (A.ToJSON a) => Int -> ClusteringTree a -> IO ()
+                        write :: (A.ToJSON a) => Int -> GenericClusteringTree a -> IO ()
                         write t tree = do
                             B.writeFile (getFileName t (getSize tree))
                                 . A.encodePretty
-                                . clusteringTreeToDendrogram
                                 $ tree
 
                     mapM_ (uncurry write) . zip [1..] $ cts
