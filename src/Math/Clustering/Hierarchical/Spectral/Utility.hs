@@ -22,7 +22,7 @@ subsetVector :: V.Vector a -> [Int] -> V.Vector a
 subsetVector xs =
     V.fromList
         . F.foldr' (\ !i !acc
-                    -> ( fromMaybe (error "Out of bounds in subsetVector.")
+                    -> ( fromMaybe (error "Out of bounds in subsetVector (do the number of observations and features match the size of the matrix? Is the input format correct?).")
                       $ xs V.!? i
                       ) : acc
                     ) []
