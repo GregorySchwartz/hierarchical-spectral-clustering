@@ -12,7 +12,7 @@ module Math.Graph.Types where
 
 -- Remote
 import Data.List (sort)
-import qualified Data.Eigen.SparseMatrix as E
+-- import qualified Data.Eigen.SparseMatrix as E
 import qualified Data.Map.Strict as Map
 import qualified Data.Graph.Inductive as G
 import qualified Data.Sparse.Common as S
@@ -23,7 +23,7 @@ import qualified Numeric.LinearAlgebra.Sparse as S
 
 -- Local
 import qualified Math.Clustering.Spectral.Dense as D
-import qualified Math.Clustering.Spectral.Eigen.AdjacencyMatrix as E
+-- import qualified Math.Clustering.Spectral.Eigen.AdjacencyMatrix as E
 import qualified Math.Clustering.Spectral.Sparse as S
 
 -- | Get a re-mapped edge list with nodes ordered from 0 to the number of nodes
@@ -63,9 +63,9 @@ instance Graphable S.AdjacencyMatrix where
               $ mat
   fromGraph gr = S.fromListSM (G.noNodes gr, G.noNodes gr) . orderedEdges $ gr
 
-instance Graphable E.AdjacencyMatrix where
-  toGraph mat = G.mkGraph (zip [0 .. E.rows mat - 1] [0 .. E.rows mat - 1])
-              . filter (\(_, _, x) -> x /= 0)
-              . E.toList
-              $ mat
-  fromGraph gr = E.fromList (G.noNodes gr) (G.noNodes gr) . orderedEdges $ gr
+-- instance Graphable E.AdjacencyMatrix where
+--   toGraph mat = G.mkGraph (zip [0 .. E.rows mat - 1] [0 .. E.rows mat - 1])
+--               . filter (\(_, _, x) -> x /= 0)
+--               . E.toList
+--               $ mat
+--   fromGraph gr = E.fromList (G.noNodes gr) (G.noNodes gr) . orderedEdges $ gr

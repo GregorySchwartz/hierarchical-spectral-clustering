@@ -45,7 +45,8 @@ import Math.Clustering.Hierarchical.Spectral.Load
 import Math.Clustering.Hierarchical.Spectral.Types
 import Math.Graph.Components
 import qualified Math.Clustering.Hierarchical.Spectral.Dense as HD
-import qualified Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix as HS
+-- import qualified Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix as HS
+import qualified Math.Clustering.Hierarchical.Spectral.Sparse as HS
 
 newtype Delimiter  = Delimiter { unDelimiter :: Char } deriving (Read, Show)
 newtype Row        = Row { unRow :: Int } deriving (Eq, Ord, Read, Show)
@@ -158,10 +159,11 @@ main = do
                            $ mat
                         else Single $ cluster items mat
             Sparse -> do
-                (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
+                -- (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
+                (items, mat) <- readSparseAdjMatrix decodeOpt stdin
 
                 let cluster items = clusteringTreeToGenericClusteringTree
-                                  . HS.hierarchicalSpectralCluster
+                                  . HS.hierarchicalSpectralClusterAdj
                                       eigenGroup'
                                       (fmap unNumEigen numEigen')
                                       (fmap unMinSize minSize')

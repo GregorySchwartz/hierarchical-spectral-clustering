@@ -1,5 +1,5 @@
 name:                hierarchical-spectral-clustering
-version:             0.4.1.1
+version:             0.4.1.2
 synopsis:            Hierarchical spectral clustering of a graph.
 description:         Generate a tree of hierarchical spectral clustering using Newman-Girvan modularity as a stopping criteria.
 homepage:            http://github.com/GregorySchwartz/hierarchical-spectral-clustering#readme
@@ -18,8 +18,8 @@ library
   exposed-modules:     Math.Clustering.Hierarchical.Spectral.Dense
                      , Math.Clustering.Hierarchical.Spectral.Sparse
                      , Math.Clustering.Hierarchical.Spectral.Load
-                     , Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix
-                     , Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix
+                     -- , Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix
+                     -- , Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix
                      , Math.Clustering.Hierarchical.Spectral.Types
                      , Math.Clustering.Hierarchical.Spectral.Utility
                      , Math.Graph.Components
@@ -30,7 +30,7 @@ library
                      , cassava
                      , clustering
                      , containers
-                     , eigen == 3.3.4.1
+                     -- , eigen == 3.3.4.1
                      , hierarchical-clustering
                      , hmatrix
                      , fgl

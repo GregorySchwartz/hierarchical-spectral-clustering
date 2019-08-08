@@ -16,17 +16,17 @@ import Math.Clustering.Spectral.Sparse (getB, B (..))
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Sparse.Common as S
-import qualified Data.Eigen.SparseMatrix as E
+-- import qualified Data.Eigen.SparseMatrix as E
 import qualified Data.Vector as V
-import qualified Math.Clustering.Spectral.Eigen.FeatureMatrix as EF
+-- import qualified Math.Clustering.Spectral.Eigen.FeatureMatrix as EF
 import qualified Numeric.LinearAlgebra as H
 
 -- Local
 import Math.Clustering.Hierarchical.Spectral.Types
 import Math.Clustering.Hierarchical.Spectral.Sparse
 import qualified Math.Clustering.Hierarchical.Spectral.Dense as Dense
-import qualified Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix as EF
-import qualified Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix as EA
+-- import qualified Math.Clustering.Hierarchical.Spectral.Eigen.FeatureMatrix as EF
+-- import qualified Math.Clustering.Hierarchical.Spectral.Eigen.AdjacencyMatrix as EA
 
 newtype QGram = QGram { unQGram :: String } deriving (Eq, Ord, Read, Show)
 newtype QGramMap = QGramMap
@@ -165,48 +165,48 @@ denseClusterKExample = Dense.hierarchicalSpectralCluster
                         exampleItems
                         (Left denseFeatureExample)
 
--- | Generate the matrix of qgrams from a list of records and qgram length.
-exampleEigenMatrix :: Int -> [String] -> E.SparseMatrixXd
-exampleEigenMatrix n records = E.fromList (S.nrows mat) (S.ncols mat) . S.toListSM $ mat
-  where
-    mat = exampleMatrix n records
+-- -- | Generate the matrix of qgrams from a list of records and qgram length.
+-- exampleEigenMatrix :: Int -> [String] -> E.SparseMatrixXd
+-- exampleEigenMatrix n records = E.fromList (S.nrows mat) (S.ncols mat) . S.toListSM $ mat
+--   where
+--     mat = exampleMatrix n records
 
-adjacencyEigenExample :: E.SparseMatrixXd
-adjacencyEigenExample = E._imap (\i j v -> if i == j then 0 else v)
-                      $ (EF.unB b) * E.transpose (EF.unB b)
-  where
-    b = EF.getB True $ exampleEigenMatrix 3 exampleData
+-- adjacencyEigenExample :: E.SparseMatrixXd
+-- adjacencyEigenExample = E._imap (\i j v -> if i == j then 0 else v)
+--                       $ (EF.unB b) * E.transpose (EF.unB b)
+--   where
+--     b = EF.getB True $ exampleEigenMatrix 3 exampleData
 
-clusterEigenExample = EF.hierarchicalSpectralCluster
-                        SignGroup
-                        True
-                        Nothing
-                        Nothing
-                        Nothing
-                        exampleItems
-                        (Left $ exampleEigenMatrix 3 exampleData)
+-- clusterEigenExample = EF.hierarchicalSpectralCluster
+--                         SignGroup
+--                         True
+--                         Nothing
+--                         Nothing
+--                         Nothing
+--                         exampleItems
+--                         (Left $ exampleEigenMatrix 3 exampleData)
 
-clusterKEigenExample = EF.hierarchicalSpectralCluster
-                        KMeansGroup
-                        True
-                        (Just 2)
-                        Nothing
-                        Nothing
-                        exampleItems
-                        (Left $ exampleEigenMatrix 3 exampleData)
+-- clusterKEigenExample = EF.hierarchicalSpectralCluster
+--                         KMeansGroup
+--                         True
+--                         (Just 2)
+--                         Nothing
+--                         Nothing
+--                         exampleItems
+--                         (Left $ exampleEigenMatrix 3 exampleData)
 
-clusterAdjEigenExample = EA.hierarchicalSpectralCluster
-                            SignGroup
-                            Nothing
-                            Nothing
-                            Nothing
-                            exampleItems
-                            adjacencyEigenExample
+-- clusterAdjEigenExample = EA.hierarchicalSpectralCluster
+--                             SignGroup
+--                             Nothing
+--                             Nothing
+--                             Nothing
+--                             exampleItems
+--                             adjacencyEigenExample
 
-clusterKAdjEigenExample = EA.hierarchicalSpectralCluster
-                        KMeansGroup
-                        (Just 2)
-                        Nothing
-                        Nothing
-                        exampleItems
-                        adjacencyEigenExample
+-- clusterKAdjEigenExample = EA.hierarchicalSpectralCluster
+--                         KMeansGroup
+--                         (Just 2)
+--                         Nothing
+--                         Nothing
+--                         exampleItems
+--                         adjacencyEigenExample
