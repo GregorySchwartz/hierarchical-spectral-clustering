@@ -29,6 +29,7 @@ import qualified Data.Set as Set
 import qualified Data.Sparse.Common as S
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed as U
 import qualified Numeric.LinearAlgebra.Sparse as S
 
 -- Local
@@ -55,37 +56,48 @@ hierarchicalSpectralCluster :: EigenGroup
                             -> Maybe NumEigen
                             -> Maybe Int
                             -> Maybe Q
+                            -> Maybe Runs
                             -> Items a
                             -> Either FeatureMatrix B
-                            -> ClusteringTree a
-hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay initItems initMat =
+                            -> IO (ClusteringTree a)
+hierarchicalSpectralCluster eigenGroup normFlag numEigenMay minSizeMay minModMay runsMay initItems initMat =
     go initItems initB
   where
     initB = either (getB normFlag) id $ initMat
     minMod   = fromMaybe (Q 0) minModMay
     minSize  = fromMaybe 1 minSizeMay
     numEigen = fromMaybe 1 numEigenMay
-    go :: Items a -> B -> ClusteringTree a
+    go :: Items a -> B -> IO (ClusteringTree a)
     go !items !b =
         if (S.nrows $ unB b) > 1
             && hasMultipleClusters clusters
             && ngMod > minMod
             && S.nrows (unB left) >= minSize
             && S.nrows (unB right) >= minSize
-            then
-                Node { rootLabel = vertex
-                     , subForest = [ go (subsetVector items leftIdxs) left
-                                   , go (subsetVector items rightIdxs) right
-                                   ]
-                     }
-
-            else
-                Node {rootLabel = vertex, subForest = []}
+            then do
+                goLeft <- go (subsetVector items leftIdxs) left
+                goRight <- go (subsetVector items rightIdxs) right
+                vertex <- getVertex
+                return $ Node { rootLabel = vertex
+                              , subForest = [goLeft, goRight]
+                              }
+            else do
+                vertex <- getVertex
+                return $ Node {rootLabel = vertex, subForest = []}
       where
-        vertex      = ClusteringVertex
-                        { _clusteringItems = items
-                        , _ngMod = ngMod
-                        }
+        getVertex = do
+          pVal <- mapM (\ x -> permutationTestSparse
+                                (\l m -> unQ $ getBModularity l m)
+                                x
+                                clusters
+                                b
+                       )
+                  runsMay
+          return $ ClusteringVertex
+                 { _clusteringItems = items
+                 , _ngMod = ngMod
+                 , _pVal = pVal
+                 }
         clusters :: S.SpVector Double
         clusters = spectralClustering eigenGroup b
         spectralClustering :: EigenGroup -> B -> S.SpVector Double
@@ -118,36 +130,47 @@ hierarchicalSpectralClusterAdj :: EigenGroup
                                -> Maybe NumEigen
                                -> Maybe Int
                                -> Maybe Q
+                               -> Maybe Runs
                                -> Items a
                                -> AdjacencyMatrix
-                               -> ClusteringTree a
-hierarchicalSpectralClusterAdj eigenGroup numEigenMay minSizeMay minModMay initItems initMat =
+                               -> IO (ClusteringTree a)
+hierarchicalSpectralClusterAdj eigenGroup numEigenMay minSizeMay minModMay runsMay initItems initMat =
     go initItems initMat
   where
     minMod      = fromMaybe (Q 0) minModMay
     minSize     = fromMaybe 1 minSizeMay
     numEigen    = fromMaybe 1 numEigenMay
-    go :: Items a -> AdjacencyMatrix -> ClusteringTree a
+    go :: Items a -> AdjacencyMatrix -> IO (ClusteringTree a)
     go !items !mat =
         if S.nrows mat > 1
             && hasMultipleClusters clusters
             && ngMod > minMod
             && S.nrows left >= minSize
             && S.nrows right >= minSize
-            then
-                Node { rootLabel = vertex
-                     , subForest = [ go (subsetVector items leftIdxs) left
-                                   , go (subsetVector items rightIdxs) right
-                                   ]
-                     }
-
-            else
-                Node {rootLabel = vertex, subForest = []}
+            then do
+                goLeft <- go (subsetVector items leftIdxs) left
+                goRight <- go (subsetVector items rightIdxs) right
+                vertex <- getVertex
+                return $ Node { rootLabel = vertex
+                              , subForest = [ goLeft, goRight]
+                              }
+            else do
+                vertex <- getVertex
+                return $ Node {rootLabel = vertex, subForest = []}
       where
-        vertex      = ClusteringVertex
-                        { _clusteringItems = items
-                        , _ngMod = ngMod
-                        }
+        getVertex = do
+          pVal <- mapM (\ x -> permutationTestSparse
+                                (\l m -> unQ $ getModularity l m)
+                                x
+                                clusters
+                                mat
+                       )
+                  runsMay
+          return $ ClusteringVertex
+                 { _clusteringItems = items
+                 , _ngMod = ngMod
+                 , _pVal = pVal
+                 }
         clusters :: S.SpVector Double
         clusters = spectralClustering eigenGroup mat
         spectralClustering :: EigenGroup -> AdjacencyMatrix -> S.SpVector Double

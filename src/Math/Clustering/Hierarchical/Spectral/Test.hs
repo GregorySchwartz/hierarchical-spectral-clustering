@@ -86,6 +86,7 @@ clusterExample = hierarchicalSpectralCluster
                     Nothing
                     Nothing
                     Nothing
+                    Nothing
                     exampleItems
                     (Left $ exampleMatrix 3 exampleData)
 
@@ -93,6 +94,7 @@ clusterKExample = hierarchicalSpectralCluster
                     KMeansGroup
                     True
                     (Just 2)
+                    Nothing
                     Nothing
                     Nothing
                     exampleItems
@@ -103,12 +105,14 @@ clusterAdjExample = hierarchicalSpectralClusterAdj
                         Nothing
                         Nothing
                         Nothing
+                        Nothing
                         exampleItems
                         adjacencyExample
 
 clusterKAdjExample = hierarchicalSpectralClusterAdj
                         KMeansGroup
                         (Just 2)
+                        Nothing
                         Nothing
                         Nothing
                         exampleItems
@@ -136,12 +140,14 @@ denseClusterAdjExample = Dense.hierarchicalSpectralClusterAdj
                           Nothing
                           Nothing
                           Nothing
+                          Nothing
                           exampleItems
                           denseAdjacencyExample
 
 denseClusterAdjKExample = Dense.hierarchicalSpectralClusterAdj
                           KMeansGroup
                           (Just 2)
+                          Nothing
                           Nothing
                           Nothing
                           exampleItems
@@ -153,6 +159,7 @@ denseClusterExample = Dense.hierarchicalSpectralCluster
                         Nothing
                         Nothing
                         Nothing
+                        Nothing
                         exampleItems
                         (Left denseFeatureExample)
 
@@ -160,6 +167,7 @@ denseClusterKExample = Dense.hierarchicalSpectralCluster
                         KMeansGroup
                         True
                         (Just 2)
+                        Nothing
                         Nothing
                         Nothing
                         exampleItems

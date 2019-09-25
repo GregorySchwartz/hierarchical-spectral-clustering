@@ -78,6 +78,8 @@ data Options = Options { clusteringType :: Maybe String
                                        <?> "([1] | INT) Number of eigenvectors to use while clustering with kmeans. Takes from the first eigenvector. Recommended to start at 2 and work up from there if needed."
                        , minModularity  :: Maybe Double
                                        <?> "([0] | DOUBLE) Minimum modularity to be over to continue recursion."
+                       , numRuns        :: Maybe Int
+                                       <?> "([Nothing] | INT) Number of runs for permutation test at each split. If present, returns p-value for each split in the tree."
                        , eigenGroup     :: Maybe String
                                        <?> "([SignGroup] | KMeansGroup) Whether to group the eigenvector using the sign or kmeans while clustering. While the default is sign, kmeans may be more accurate (but starting points are arbitrary)."
                        , separateComponents :: Bool
@@ -117,6 +119,7 @@ main = do
         minSize'            = fmap MinSize . unHelpful . minSize $ opts
         numEigen'           = fmap NumEigen . unHelpful . numEigen $ opts
         minModularity'      = fmap Q . unHelpful . minModularity $ opts
+        numRuns'            = unHelpful . numRuns $ opts
         eigenGroup'         =
           maybe SignGroup (readOrErr "Cannot read --eigen-group")
             . unHelpful
@@ -143,40 +146,40 @@ main = do
             Dense -> do
                 (items, mat) <- readDenseAdjMatrix decodeOpt stdin
 
-                let cluster items = clusteringTreeToGenericClusteringTree
+                let cluster items = fmap clusteringTreeToGenericClusteringTree
                                   . HD.hierarchicalSpectralClusterAdj
                                       eigenGroup'
                                       (fmap unNumEigen numEigen')
                                       (fmap unMinSize minSize')
                                       minModularity'
+                                      numRuns'
                                       items
 
-                return $
-                    if separateComponents'
-                        then Multiple
-                           . fmap (uncurry cluster)
-                           . getComponentMatsItems items
-                           $ mat
-                        else Single $ cluster items mat
+                if separateComponents'
+                    then fmap Multiple
+                       . mapM (uncurry cluster)
+                       . getComponentMatsItems items
+                       $ mat
+                    else Single <$> cluster items mat
             Sparse -> do
                 -- (items, mat) <- readEigenSparseAdjMatrix decodeOpt stdin
                 (items, mat) <- readSparseAdjMatrix decodeOpt stdin
 
-                let cluster items = clusteringTreeToGenericClusteringTree
+                let cluster items = fmap clusteringTreeToGenericClusteringTree
                                   . HS.hierarchicalSpectralClusterAdj
                                       eigenGroup'
                                       (fmap unNumEigen numEigen')
                                       (fmap unMinSize minSize')
                                       minModularity'
+                                      numRuns'
                                       items
 
-                return $
-                    if separateComponents'
-                        then Multiple
-                           . fmap (uncurry cluster)
-                           . getComponentMatsItems items
-                           $ mat
-                        else Single $ cluster items mat
+                if separateComponents'
+                    then fmap Multiple
+                       . mapM (uncurry cluster)
+                       . getComponentMatsItems items
+                       $ mat
+                    else Single <$> cluster items mat
 
             (Premade file) ->
                 fmap (either error Single . A.eitherDecode) . B.readFile $ file

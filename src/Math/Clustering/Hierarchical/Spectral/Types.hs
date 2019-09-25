@@ -22,6 +22,7 @@ module Math.Clustering.Hierarchical.Spectral.Types
     , getClusterItemsGenericTree
     , Q (..)
     , NumEigen (..)
+    , Runs (..)
     ) where
 
 -- Remote
@@ -42,17 +43,20 @@ type Items a         = V.Vector a
 type ClusteringTree a = Tree (ClusteringVertex a)
 type GenericClusteringTree a = Tree (GenericClusteringVertex a)
 type NumEigen = Int
+type Runs = Int
 
 data EigenGroup = SignGroup | KMeansGroup deriving (Read, Show, Generic)
 
 data ClusteringVertex a = ClusteringVertex
     { _clusteringItems  :: !(Items a)
     , _ngMod            :: !Q
+    , _pVal           :: !(Maybe Double)
     } deriving (Eq, Ord, Read, Show, Generic)
 
 data GenericClusteringVertex a = GenericClusteringVertex
     { _item :: !(Maybe (Items a))
     , _distance :: !(Maybe Double)
+    , _pValue :: !(Maybe Double)
     } deriving (Eq, Ord, Read, Show, Generic)
 
 -- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
@@ -95,6 +99,7 @@ clusteringTreeToGenericClusteringTree = go
       Node { rootLabel = ( GenericClusteringVertex
                              { _item = Just $ _clusteringItems n
                              , _distance = Nothing
+                             , _pValue = Nothing
                              }
                          )
            , subForest = []
@@ -103,6 +108,7 @@ clusteringTreeToGenericClusteringTree = go
       Node { rootLabel = ( GenericClusteringVertex
                             { _item = Nothing
                             , _distance = Just . unQ . _ngMod $ n
+                            , _pValue = _pVal n
                             }
                          )
            , subForest = fmap go xs
@@ -115,7 +121,7 @@ getClusterItemsDend = F.toList
 -- | Gather clusters (leaves) from the tree.
 getClusterItemsTree :: ClusteringTree a -> [Items a]
 getClusterItemsTree = fmap _clusteringItems . leaves
-                    
+
 -- | Gather clusters (leaves) from the generic tree.
 getClusterItemsGenericTree :: GenericClusteringTree a -> [Items a]
 getClusterItemsGenericTree = catMaybes . fmap _item . leaves
