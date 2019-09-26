@@ -56,7 +56,7 @@ data ClusteringVertex a = ClusteringVertex
 data GenericClusteringVertex a = GenericClusteringVertex
     { _item :: !(Maybe (Items a))
     , _distance :: !(Maybe Double)
-    , _pValue :: !(Maybe Double)
+    , _significance :: !(Maybe Double)
     } deriving (Eq, Ord, Read, Show, Generic)
 
 -- | Convert a ClusteringTree to a Dendrogram. Modularity is the distance.
@@ -99,7 +99,7 @@ clusteringTreeToGenericClusteringTree = go
       Node { rootLabel = ( GenericClusteringVertex
                              { _item = Just $ _clusteringItems n
                              , _distance = Nothing
-                             , _pValue = Nothing
+                             , _significance = Nothing
                              }
                          )
            , subForest = []
@@ -108,7 +108,7 @@ clusteringTreeToGenericClusteringTree = go
       Node { rootLabel = ( GenericClusteringVertex
                             { _item = Nothing
                             , _distance = Just . unQ . _ngMod $ n
-                            , _pValue = _pVal n
+                            , _significance = _pVal n
                             }
                          )
            , subForest = fmap go xs
